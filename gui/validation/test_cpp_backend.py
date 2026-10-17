@@ -46,7 +46,7 @@ JONES_TOL = 1e-9               # 传播级 Jones 矩阵元：|ΔJ| ≤ 1e-9·max
 SMALL_M = 20                   # 对拍时把 M 降到这个数，以便快跑
 
 # 内置预设里哪些该交给 C++（其余的走 Python）
-CPP_PRESETS = {"trapezoid_analytic", "triangle_analytic", "meent_conical", "slab"}
+CPP_PRESETS = {"trapezoid_analytic", "triangle_analytic", "trapezoid_fft", "triangle_fft", "meent_conical", "slab"}
 # 二维预设现在也交给 C++（其效率、场与相位的对拍在 test_cpp_2d_backend.py；这里的逐级对拍只覆盖一维求解器）
 CPP_PRESETS_2D = {"pillar_2d"}
 
@@ -255,6 +255,16 @@ class TempDirCase(unittest.TestCase):
 
 # --------------------------------------------------------------------------- 1. 与 Python 逐级对拍
 class Comparison(TempDirCase):
+    def test_fft_models(self):
+        need_cpp(self)
+        for mode, cfg in (("TE", planar_model("TE")), ("TM", planar_model("TM")),
+                          ("conical", conical_model("jones"))):
+            # Mix analytic and FFT layers, absorption and a translated origin.
+            for samples in (0, 1009, 8192):
+                with self.subTest(mode=mode, samples=samples):
+                    cfg["structure"]["layers"][2].update(fourier_method="fft", fft_samples=samples)
+                    self.compare(f"{mode} FFT N={samples}", cfg)
+
     def compare(self, name, cfg):
         cfg, res = python_solve(cfg)
         attempt = cpp_backend.attempt(cfg, self.tmp)
@@ -342,7 +352,7 @@ class Routing(TempDirCase):
             self.assertIn("二维", cpp_backend.eligibility(too_many)[1])
         with EnvPatch(RCWA_2D_BACKEND=None):
             self.assertEqual(reason("pillar_2d"), cpp_backend.NOTE_2D_PYTHON)
-        self.assertIn("FFT", reason("trapezoid_fft"))
+        self.assertEqual(reason("trapezoid_fft"), "")
         uniaxial = gui_models.preset("slab")
         uniaxial["structure"]["layers"][0]["n"] = "1.658/1.486@x"
         fits, why = cpp_backend.eligibility(gui_models.normalize(uniaxial))
@@ -372,6 +382,10 @@ class Routing(TempDirCase):
         self.assertEqual(conical["input"], {"psi_deg": 35., "delta_deg": 70.})
         self.assertEqual(conical["options"], {"threads": 1, "parallel_layers": False})
         self.assertEqual(cpp_backend.build_request(conical_model("s"))["input"], {"psi_deg": 90., "delta_deg": 0.})
+        fft = planar_model()
+        fft["structure"]["layers"][0].update(fourier_method="fft", fft_samples=1009)
+        self.assertEqual(cpp_backend.build_request(fft)["stack"]["layers"][0]["fourier_method"], "fft")
+        self.assertEqual(cpp_backend.build_request(fft)["stack"]["layers"][0]["fft_samples"], 1009)
         json.dumps(request), json.dumps(conical)
 
     def assert_python(self, metrics, *words):
@@ -384,13 +398,11 @@ class Routing(TempDirCase):
             self.assertIn(word, block["note"])
 
     def test_worker_routes_to_python(self):
-        fft = planar_model()
-        fft["structure"]["layers"][0]["fourier_method"] = "fft"
         uniaxial = gui_models.preset("slab")
         uniaxial["structure"]["layers"][0]["n"] = "1.658/1.486@x"
         # 二维模型不再在这里：它现在走 C++，路由与退回由 test_cpp_2d_backend.py 检查
         cases = [("pml", gui_models.preset("single_bar"), "PML"),
-                 ("uniaxial", uniaxial, "单轴"), ("fft", fft, "FFT")]
+                 ("uniaxial", uniaxial, "单轴")]
         for name, cfg, word in cases:
             with self.subTest(case=name), EnvPatch(RCWA_BACKEND=None):
                 metrics, out = self.run_worker(cfg, name)
@@ -707,6 +719,13 @@ class Building(TempDirCase):
         self.assertEqual(self.answer(exe), "hello 2")
         self.later(exe, 10)
         self.later(self.header, 20)                                                     # 头文件更新也算
+        stages.clear()
+        cpp_backend.ensure_executable(stages.append)
+        self.assertTrue(any("编译" in s for s in stages))
+        vendor_header = self.header.with_name("vendor.h")
+        vendor_header.write_text("// vendored FFT header\n", encoding="utf-8")
+        self.assertIn(vendor_header, cpp_backend._source_files())
+        self.later(vendor_header, 30)
         stages.clear()
         cpp_backend.ensure_executable(stages.append)
         self.assertTrue(any("编译" in s for s in stages))

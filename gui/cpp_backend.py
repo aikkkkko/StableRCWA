@@ -6,12 +6,12 @@ GUI 的生产完整路径位于 cpp_fields_backend.py，调用 rcwa_fields 一�
 
 哪些计算交给 C++
     求解方式是“周期 RCWA · 平面入射”（TE/TM）或“周期 RCWA · 圆锥入射”，所有材料各向同性，
-    所有分段层的 Fourier 系数取解析积分。这时各级衍射效率（圆锥还有复 Jones 矩阵）由 C++ 算。
+    分段层的 Fourier 系数可取解析积分或 FFT。这时各级衍射效率（圆锥还有复 Jones 矩阵）由 C++ 算。
     二维周期（periodic2d）：材料各向同性、Fourier 系数取解析积分、谐波总数 N=(2M+1)(2My+1) 不超过 625 的模型 C++ 也能算，
     但**默认仍由 Python 求解器计算**：实测 C++ 的二维本征分解在每个 N 上都比 Python 慢（DEFAULT_BACKEND_2D 的注释有数字与改回的条件）。
     环境变量 RCWA_2D_BACKEND=cpp 打开二维的 C++ 路径（一维完全不受这个开关影响）。
     二维没有横向 PML、单轴晶体、FFT 系数与磁性：界面入口（gui_models_2d.normalize_2d）就拒绝这几类模型，
-    不会交给任何求解器；一维的 PML、单轴晶体、FFT 系数模型仍由 Python 求解器完成。
+    不会交给任何求解器；一维的 PML、单轴晶体模型仍由 Python 求解器完成。
     这一版两边都算：C++ 给出结果页上的效率，Python 照常求解并重建场，两组效率之差记进 metrics.json。
     圆锥入射时 C++ 还报告 min_abs_lambda、degenerate_mode_warning 与 n_schur（使用完整 Schur 传播的层数）。
     它们记进 metrics.json 的 backend 段；Python 的 Schur/零根场传播计数也记录在这里。
@@ -252,7 +252,7 @@ def executable_path():
 
 def _source_files(source=None):
     source = SOURCE if source is None else source
-    files = [source] + sorted(source.parent.glob("*.hpp")) + sorted(INCLUDE.rglob("*.hpp"))
+    files = [source] + sorted(source.parent.glob("*.hpp")) + sorted(INCLUDE.rglob("*.hpp")) + sorted(INCLUDE.rglob("*.h"))
     return [f for f in files if f.is_file()]
 
 
@@ -672,8 +672,6 @@ def eligibility(cfg):
         values = [layer.get("n")] if layer.get("kind") == "uniform" else list(layer.get("n_values", []))
         if any(_index(v) is None for v in values):
             return False, name + "含单轴晶体（各向异性材料），由 Python 求解器计算"
-        if layer.get("kind") != "uniform" and layer.get("fourier_method", "analytic") != "analytic":
-            return False, name + "的 Fourier 系数取 FFT，由 Python 求解器计算"
     return True, ""
 
 
@@ -761,6 +759,8 @@ def build_request(cfg, threads=1):
             gratings += 1
             layers.append({"d": float(layer["thickness"]), "edges": [float(e) for e in layer["edges"]],
                            "n_values": [_json_index(v) for v in layer["n_values"]]})
+            if layer.get("fourier_method", "analytic") == "fft":
+                layers[-1].update(fourier_method="fft", fft_samples=int(layer.get("fft_samples", 0)))
     conical = cfg["mode"] == "conical"
     request = {"mode": "conical" if conical else "planar",
                "stack": {"nI": _json_index(st["n_incident"]), "nII": _json_index(st["n_substrate"]),

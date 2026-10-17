@@ -23,6 +23,8 @@
 //                     均匀层写      "n": 折射率
 //                     光栅层写      "edges": [x0, x1, …, xK]（一个周期内的分段边界，递增，首尾相差一个周期）
 //                                   "n_values": [n1, …, nK]（各段的折射率）
+//                   一维层可选 "fourier_method": "analytic"（默认）或 "fft"；"fft_samples": N（默认 0 自动选择）。
+//                   FFT 使用 pocketfft 做均匀中点采样，N >= 4*M+1，最大 4194304；均匀层仍走解析路径。
 //                   两种写法不能混在同一层里。
 //     折射率写成一个实数，或者 [实部, 虚部]；吸收介质的虚部是正的。
 //   M             单侧截断阶数：保留 −M … M 共 2M+1 级。planar 模式不超过 8191，conical 模式不超过 4095（见 kJsonMaxMatrixOrder）。
@@ -305,7 +307,7 @@ inline void check_index(cplx n, const std::string& where) {
 
 inline Layer read_layer(const json::Value& v, const std::string& path, double period) {
     need_object(v, path);
-    check_keys(v, path, {"d", "n", "edges", "n_values"});
+    check_keys(v, path, {"d", "n", "edges", "n_values", "fourier_method", "fft_samples"});
     const double d = number(member(v, "d", path), child(path, "d"));
     if (!std::isfinite(d) || d < 0.0) fail(child(path, "d"), "层厚不能是负的");
     const json::Value* n = v.find("n");
@@ -341,6 +343,19 @@ inline Layer read_layer(const json::Value& v, const std::string& path, double pe
         if (std::abs((e.back() - e.front()) - period) > 1e-10 * period)
             fail(edges_path, "分段边界的首尾必须正好相差一个周期（stack.period）");
         layer = Layer::grating(d, std::move(e), std::move(indices));
+    }
+    if (const json::Value* method = v.find("fourier_method")) {
+        const std::string where = child(path, "fourier_method");
+        const std::string name = text(*method, where);
+        if (name == "analytic") layer.fourier_method = FourierMethod::Analytic;
+        else if (name == "fft") layer.fourier_method = FourierMethod::FFT;
+        else fail(where, "只能是 \"analytic\" 或 \"fft\"");
+    }
+    if (const json::Value* samples = v.find("fft_samples")) {
+        const std::string where = child(path, "fft_samples");
+        layer.fft_samples = integer(*samples, where);
+        if (layer.fft_samples < 0 || layer.fft_samples > kMaxFFTSamples)
+            fail(where, "FFT 采样数必须为 0..4194304（0 表示自动选择）");
     }
     try {                                    // 上面的检查若与求解器自己的有出入，在这里补上
         detail::check_layer(layer, period);
@@ -681,6 +696,14 @@ inline Request read_request(const json::Value& root) {
     const int max_order = (kJsonMaxMatrixOrder / (rq.conical ? 2 : 1) - 1) / 2;   // 比 rcwa1d.hpp 的 check_setup 严：见 kJsonMaxMatrixOrder
     if (rq.M < 0 || rq.M > max_order)
         fail("M", "截断阶数不能是负的，也不能超过 " + std::to_string(max_order) + "（再大，单个稠密矩阵就超过 4 GiB）");
+
+    for (std::size_t j = 0; j < rq.stack.layers.size(); ++j) {
+        const Layer& layer = rq.stack.layers[j];
+        if (!layer.homogeneous && layer.fourier_method == FourierMethod::FFT) {
+            try { (void)resolve_fft_samples(rq.M, layer.fft_samples); }
+            catch (const std::invalid_argument& e) { fail(child(child("stack.layers", j), "fft_samples"), e.what()); }
+        }
+    }
 
     if (!rq.conical) {
         const std::string name = text(member(root, "polarization", ""), "polarization");

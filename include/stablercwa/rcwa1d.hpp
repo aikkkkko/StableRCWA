@@ -59,6 +59,7 @@
 #include <vector>
 
 #include "eig.hpp"
+#include "fourier.hpp"
 #include "lu.hpp"
 #include "matrix.hpp"
 #include "parallel.hpp"
@@ -82,6 +83,8 @@ struct Layer {
     std::vector<double> edges;         // 光栅层：一个周期内的分段边界（递增，首尾相差一个周期，起点可以不是 0）
     std::vector<cplx> n_values;        // 光栅层：各段折射率（可为复数），个数比边界少 1
     bool homogeneous = true;
+    FourierMethod fourier_method = FourierMethod::Analytic;
+    int fft_samples = 0;               // 0: automatic; patterned FFT layers require N >= 4*M+1
 
     static Layer uniform(double thickness, cplx index) {
         Layer layer;
@@ -89,12 +92,15 @@ struct Layer {
         layer.n = index;
         return layer;
     }
-    static Layer grating(double thickness, std::vector<double> boundaries, std::vector<cplx> indices) {
+    static Layer grating(double thickness, std::vector<double> boundaries, std::vector<cplx> indices,
+                         FourierMethod method = FourierMethod::Analytic, int samples = 0) {
         Layer layer;
         layer.d = thickness;
         layer.edges = std::move(boundaries);
         layer.n_values = std::move(indices);
         layer.homogeneous = false;
+        layer.fourier_method = method;
+        layer.fft_samples = samples;
         return layer;
     }
 };
@@ -172,7 +178,10 @@ inline void check_index(cplx n) {
         throw std::invalid_argument("rcwa: refractive index must be finite, nonzero, with Re n >= 0 and Im n >= 0");
 }
 
-inline void check_layer(const Layer& layer, double period) {
+inline void check_layer(const Layer& layer, double period, int M = -1) {
+    validate_fourier_settings(layer.fourier_method, layer.fft_samples);
+    if (!layer.homogeneous && layer.fourier_method == FourierMethod::FFT && M >= 0)
+        (void)resolve_fft_samples(M, layer.fft_samples);
     if (!std::isfinite(layer.d) || layer.d < 0.0)
         throw std::invalid_argument("rcwa: layer thickness must be finite and >= 0");
     if (layer.homogeneous) {
@@ -350,8 +359,17 @@ inline Vector fourier_coefficients(const std::vector<double>& edges, const Vecto
 }
 
 // 卷积矩阵 ⟦f⟧：(2M+1) 阶，第 (m, p) 元是 c_{m−p}。两个保留级次相减可到 ±2M，所以系数要算到 2M。
-inline Matrix convolution_matrix(const std::vector<double>& edges, const Vector& values, double period, int M) {
-    const Vector c = fourier_coefficients(edges, values, period, 2 * M);
+inline Matrix convolution_matrix(const std::vector<double>& edges, const Vector& values, double period, int M,
+                                  FourierMethod method = FourierMethod::Analytic, int samples = 0) {
+    // A finite index can overflow when squared or inverted. Preserve the solver's
+    // numerical-failure contract instead of letting FFT input validation call it
+    // an invalid user parameter. The public FFT coefficient API still validates input.
+    if (method == FourierMethod::FFT)
+        for (const cplx& value : values)
+            if (!is_finite(value)) throw NumericalFailure{};
+    const Vector c = method == FourierMethod::FFT
+        ? fourier_coefficients_fft(edges, values, period, 2 * M, resolve_fft_samples(M, samples))
+        : fourier_coefficients(edges, values, period, 2 * M);
     const int n = 2 * M + 1;
     Matrix m(n, n);
     for (int col = 0; col < n; ++col)
@@ -398,7 +416,8 @@ inline LayerOperator assemble_layer(const Layer& layer, double period, const Vec
     }
     const int size = 2 * M + 1;
     LayerOperator out;
-    Matrix e = convolution_matrix(edges, eps, period, M);
+    const FourierMethod method = layer.homogeneous ? FourierMethod::Analytic : layer.fourier_method;
+    Matrix e = convolution_matrix(edges, eps, period, M, method, layer.fft_samples);
     if (pol == Polarization::TE) {
         if (retained) retained->eps = e;
         // A = Kx² − ⟦ε⟧
@@ -409,7 +428,7 @@ inline LayerOperator assemble_layer(const Layer& layer, double period, const Vec
         out.a = std::move(e);
     } else {
         // A = ⟦1/ε⟧^{-1}·(Kx·⟦ε⟧^{-1}·Kx − I)。两处都是解方程，不显式求逆矩阵。
-        out.inv_eps = convolution_matrix(edges, inv, period, M);
+        out.inv_eps = convolution_matrix(edges, inv, period, M, method, layer.fft_samples);
         Matrix b = scale_rows(linear_solve(e, Matrix::diagonal(kx), work,
                                          retained ? &retained->eps_factors : nullptr), kx);
         if (retained) retained->factorized = true;
@@ -809,7 +828,7 @@ inline Result solve_impl(const Stack& stack, double wavelength, double theta_deg
     // ---- 0. 检查输入
     dt::check_setup(stack.period, wavelength, stack.nI, theta_deg, M, pol);
     dt::check_index(stack.nII);
-    for (const Layer& layer : stack.layers) dt::check_layer(layer, stack.period);
+    for (const Layer& layer : stack.layers) dt::check_layer(layer, stack.period, M);
     if (options.linear != LinearSolver::LUPartial && options.linear != LinearSolver::LUNoPivot &&
         options.linear != LinearSolver::QRHouseholder)
         throw std::invalid_argument("rcwa: unknown linear solver");
@@ -1048,7 +1067,7 @@ inline Matrix layer_matrix(const Layer& layer, double period, double wavelength,
                            int M, Polarization pol) {
     namespace dt = detail;
     dt::check_setup(period, wavelength, nI, theta_deg, M, pol);
-    dt::check_layer(layer, period);
+    dt::check_layer(layer, period, M);
     const Vector kx = dt::transverse_wavevectors(nI.real(), theta_deg, wavelength, period, M);
     dt::Work work;
     try {
