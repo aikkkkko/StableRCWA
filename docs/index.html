@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StableRCWA</title>
+<style>
+:root{--bg:#f6f8fb;--ink:#1d2433;--muted:#5b6578;--line:#d8dee8;--accent:#1f5fbf}
+@media (prefers-color-scheme: dark){:root{--bg:#12161d;--ink:#e6eaf2;--muted:#9aa4b5;--line:#2a3140;--accent:#7fb0ff}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+main{max-width:760px;margin:0 auto;padding:48px 16px} h1{margin:0 0 4px;font-size:30px} p.lead{color:var(--muted);margin:0 0 28px}
+a{color:var(--accent)} li{margin:8px 0} footer{margin-top:40px;border-top:1px solid var(--line);padding-top:12px;color:var(--muted);font-size:13px}
+</style></head><body><main>
+<h1>StableRCWA</h1>
+<p class="lead">Header-only C++17 RCWA (Fourier modal method) for 1-D and 2-D periodic gratings, stable at high truncation orders.<br>
+只有头文件的 C++17 RCWA 求解器，用于一维、二维周期光栅，高截断阶数下依然算得准。</p>
+<h2>Explainer pages · 讲解页（中文）</h2>
+<ul>
+<li><a href="pages/圆锥入射-COMSOL对照.html">圆锥入射：COMSOL 有限元与 RCWA 的对照</a></li>
+<li><a href="pages/截止零根-Schur传播与COMSOL对拍.html">截止零根、Schur 传播与 COMSOL 对拍</a></li>
+</ul>
+<h2>Source and documentation · 源码与文档</h2>
+<ul>
+<li><a href="https://github.com/aikkkkko/StableRCWA">https://github.com/aikkkkko/StableRCWA</a></li>
+<li><a href="https://github.com/aikkkkko/StableRCWA/blob/v0.1.0/docs/quickstart.zh-CN.md">快速上手</a> · <a href="https://github.com/aikkkkko/StableRCWA/blob/v0.1.0/docs/user-guide.zh-CN.md">使用说明</a> · <a href="https://github.com/aikkkkko/StableRCWA/blob/v0.1.0/docs/validation.zh-CN.md">验证</a></li>
+</ul>
+<footer>StableRCWA v0.1.0 · MIT License</footer>
+</main></body></html>

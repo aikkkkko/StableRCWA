@@ -1,0 +1,258 @@
+{
+  "schema_version": 1,
+  "name": "有限 MLD 光栅",
+  "mode": "pml",
+  "incident": {
+    "wavelength": 1.053,
+    "angle_deg": 66.36,
+    "polarization": "TE",
+    "M": 120
+  },
+  "structure": {
+    "period": 10.2014,
+    "n_incident": 1.0,
+    "n_substrate": 1.46,
+    "layers": [
+      {
+        "name": "有限 SiO₂ 刻线区",
+        "thickness": 0.38,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          2.6325,
+          2.8047,
+          3.2065,
+          3.3787000000000003,
+          3.7805,
+          3.9527,
+          4.3545,
+          4.5267,
+          5.6747,
+          5.8469,
+          6.2486999999999995,
+          6.4209,
+          6.822699999999999,
+          6.9948999999999995,
+          7.396699999999999,
+          7.568899999999999,
+          10.2014
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0,
+          1.46,
+          1.0,
+          1.46,
+          1.0,
+          1.46,
+          1.0,
+          1.46,
+          1.0,
+          1.46,
+          1.0,
+          1.46,
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "SiO₂ 匹配层 3L",
+        "thickness": 0.46438,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      }
+    ]
+  },
+  "pml": {
+    "left": 1.5795,
+    "right": 1.5795,
+    "strength": 3.0,
+    "order": 3,
+    "x0": 0.0
+  },
+  "sampling": {
+    "z_min": -0.2,
+    "z_max": 1.4,
+    "nx": 360,
+    "nz": 220
+  }
+}

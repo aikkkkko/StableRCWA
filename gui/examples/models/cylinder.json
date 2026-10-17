@@ -1,0 +1,639 @@
+{
+  "schema_version": 1,
+  "name": "介质圆柱截面",
+  "mode": "pml",
+  "incident": {
+    "wavelength": 1.0,
+    "angle_deg": 30.0,
+    "polarization": "TE",
+    "M": 30
+  },
+  "structure": {
+    "period": 3.6,
+    "n_incident": 1.0,
+    "n_substrate": 1.0,
+    "layers": [
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.7379902036469201,
+          1.86200979635308,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.69431445891821,
+          1.9056855410817901,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.66581590595846,
+          1.93418409404154,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.6439454347231401,
+          1.95605456527686,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.6261828479587002,
+          1.9738171520413,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.61136411769297,
+          1.98863588230703,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.59883760641275,
+          2.0011623935872502,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.5881962232542801,
+          2.01180377674572,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.5791672808577701,
+          2.02083271914223,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.57155950754354,
+          2.02844049245646,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.56523469997943,
+          2.03476530002057,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.56009136667525,
+          2.03990863332475,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.55605476568756,
+          2.04394523431244,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.55307061516751,
+          2.04692938483249,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.55110105746759,
+          2.0488989425324102,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.5501221001293801,
+          2.04987789987062,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.5501221001293801,
+          2.04987789987062,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.55110105746759,
+          2.0488989425324102,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.55307061516751,
+          2.04692938483249,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.55605476568756,
+          2.04394523431244,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.56009136667525,
+          2.03990863332475,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.56523469997943,
+          2.03476530002057,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.57155950754354,
+          2.02844049245646,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.5791672808577701,
+          2.02083271914223,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.5881962232542801,
+          2.01180377674572,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.59883760641275,
+          2.0011623935872502,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.61136411769297,
+          1.98863588230703,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.6261828479587002,
+          1.9738171520413,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.6439454347231401,
+          1.95605456527686,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.66581590595846,
+          1.93418409404154,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.69431445891821,
+          1.9056855410817901,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      },
+      {
+        "name": "cylinder slice",
+        "thickness": 0.015625,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.7379902036469201,
+          1.86200979635308,
+          3.6
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      }
+    ]
+  },
+  "pml": {
+    "left": 0.85,
+    "right": 0.85,
+    "strength": 3.0,
+    "order": 3,
+    "x0": 0.0
+  },
+  "sampling": {
+    "z_min": -0.2,
+    "z_max": 0.7,
+    "nx": 360,
+    "nz": 220
+  }
+}

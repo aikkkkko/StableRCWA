@@ -1,0 +1,31 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# CMake and compiled artifacts
+/build/
+/cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+# GUI 现场编译的后端程序与构建记录（每台机器、每次编译都不同；目录由 cpp_backend 在需要时创建）
+/gui/bin/
+# GUI 每次计算的结果目录（默认写在这里，本机运行记录，不进版本库）
+/gui/results/
+
+# Local credentials
+.env
+.env.local
+.env.*.local
+*.pem
+*.key

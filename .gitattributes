@@ -1,0 +1,3 @@
+# Keep Windows batch files CRLF so cmd.exe parses labels correctly, whatever core.autocrlf is set to.
+*.bat text eol=crlf
+*.sh text eol=lf

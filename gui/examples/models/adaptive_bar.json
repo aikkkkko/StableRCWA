@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "name": "孤立介质条 · 自动PML",
+  "mode": "pml",
+  "incident": {
+    "wavelength": 0.628,
+    "angle_deg": 30.0,
+    "polarization": "TE",
+    "M": 40,
+    "phi_deg": 0.0,
+    "psi_deg": 45.0,
+    "delta_deg": 0.0
+  },
+  "structure": {
+    "period": 3.0,
+    "n_incident": 1.0,
+    "n_substrate": 1.0,
+    "layers": [
+      {
+        "name": "孤立介质条",
+        "thickness": 0.2,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          1.3,
+          1.7,
+          3.0
+        ],
+        "n_values": [
+          1.0,
+          1.5,
+          1.0
+        ],
+        "background_n": 1.0
+      }
+    ]
+  },
+  "pml": {
+    "left": 0.6,
+    "right": 0.6,
+    "strength": 3.0,
+    "order": 3,
+    "x0": 0.0
+  },
+  "sampling": {
+    "z_min": -0.2,
+    "z_max": 0.4,
+    "nx": 360,
+    "nz": 220
+  },
+  "adaptive_pml": {
+    "enabled": true,
+    "target_tail": 0.001,
+    "verify": true,
+    "verification_rtol": 0.01,
+    "verification_quantity": "main",
+    "max_solves": 8,
+    "max_M": 300,
+    "max_width_factor": 4.0,
+    "max_seconds": 300.0,
+    "width_growth": 1.5,
+    "spectral_growth": 1.35,
+    "diagnostic_nx": 65,
+    "diagnostic_nz": 25,
+    "incident_floor": 1e-08,
+    "roi": null
+  }
+}

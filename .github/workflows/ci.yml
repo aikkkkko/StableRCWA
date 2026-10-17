@@ -1,0 +1,40 @@
+# Build the examples and tests with CMake and run ctest on Linux (GCC), macOS (Apple clang) and Windows (MSVC).
+#
+# CMakeLists.txt links Threads::Threads, so the -pthread flag that a plain Linux compile needs is added by CMake.
+# Windows uses the default Visual Studio generator, which is multi-config: the configuration is chosen at build
+# and test time (--config Release, ctest -C Release); CMAKE_BUILD_TYPE only matters for the single-config generators.
+# ctest runs from inside the build directory: `ctest --test-dir` needs CMake >= 3.20, and the project supports 3.16.
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release --parallel 4
+
+      - name: Test
+        working-directory: build
+        run: ctest -C Release --output-on-failure --parallel 2

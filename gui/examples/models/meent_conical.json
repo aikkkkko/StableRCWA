@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "name": "Meent 官方圆锥算例",
+  "mode": "conical",
+  "incident": {
+    "wavelength": 0.9,
+    "angle_deg": -20.0,
+    "polarization": "jones",
+    "M": 200,
+    "phi_deg": 278.8733853924696,
+    "psi_deg": 45.0,
+    "delta_deg": 180.0
+  },
+  "structure": {
+    "period": 1.0,
+    "n_incident": 1.0,
+    "n_substrate": 1.0,
+    "layers": [
+      {
+        "name": "Meent 10 段介质光栅",
+        "thickness": 0.5,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.1,
+          0.2,
+          0.30000000000000004,
+          0.4,
+          0.5,
+          0.6000000000000001,
+          0.7000000000000001,
+          0.8,
+          0.9,
+          1.0
+        ],
+        "n_values": [
+          1.0,
+          5.0,
+          1.0,
+          5.0,
+          5.0,
+          1.0,
+          5.0,
+          1.0,
+          5.0,
+          5.0
+        ],
+        "background_n": null
+      }
+    ]
+  },
+  "pml": {
+    "left": 0.15,
+    "right": 0.15,
+    "strength": 3.0,
+    "order": 3,
+    "x0": 0.0
+  },
+  "sampling": {
+    "z_min": 0.0,
+    "z_max": 0.5,
+    "nx": 240,
+    "nz": 100
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "name": "均匀介质膜",
+  "mode": "periodic",
+  "incident": {
+    "wavelength": 1.0,
+    "angle_deg": 0.0,
+    "polarization": "TE",
+    "M": 10
+  },
+  "structure": {
+    "period": 2.0,
+    "n_incident": 1.0,
+    "n_substrate": 1.0,
+    "layers": [
+      {
+        "name": "介质膜",
+        "thickness": 0.3,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.5,
+        "background_n": null
+      }
+    ]
+  },
+  "pml": {
+    "left": 0.3,
+    "right": 0.3,
+    "strength": 3.0,
+    "order": 3,
+    "x0": 0.0
+  },
+  "sampling": {
+    "z_min": -0.2,
+    "z_max": 0.5,
+    "nx": 360,
+    "nz": 220
+  }
+}

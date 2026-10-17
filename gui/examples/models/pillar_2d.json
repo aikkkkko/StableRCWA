@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "name": "二维矩形柱与双层膜",
+  "mode": "periodic2d",
+  "incident": {
+    "wavelength": 1.0,
+    "angle_deg": 20.0,
+    "phi_deg": 30.0,
+    "polarization": "s",
+    "M": 4,
+    "My": 4,
+    "psi_deg": 90.0,
+    "delta_deg": 0.0
+  },
+  "structure": {
+    "period": 1.0,
+    "period_y": 0.8,
+    "n_incident": 1.0,
+    "n_substrate": 1.45,
+    "layers": [
+      {
+        "name": "矩形介质柱",
+        "kind": "patterned2d",
+        "thickness": 0.3,
+        "y_edges": [
+          0.0,
+          0.2,
+          0.6,
+          0.8
+        ],
+        "x_profiles": [
+          {
+            "edges": [
+              0.0,
+              1.0
+            ],
+            "n_values": [
+              1.0
+            ]
+          },
+          {
+            "edges": [
+              0.0,
+              0.3,
+              0.7,
+              1.0
+            ],
+            "n_values": [
+              1.0,
+              1.7,
+              1.0
+            ]
+          },
+          {
+            "edges": [
+              0.0,
+              1.0
+            ],
+            "n_values": [
+              1.0
+            ]
+          }
+        ],
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "background_n": null
+      },
+      {
+        "name": "第一膜",
+        "kind": "uniform",
+        "thickness": 0.16,
+        "n": 1.46,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "background_n": null
+      },
+      {
+        "name": "第二膜",
+        "kind": "uniform",
+        "thickness": 0.11,
+        "n": 1.9,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "background_n": null
+      }
+    ]
+  },
+  "sampling": {
+    "nx": 80,
+    "nz": 60,
+    "z_min": -0.2,
+    "z_max": 0.77,
+    "slice_plane": "xz",
+    "slice_at": 0.4
+  },
+  "pml": {
+    "left": 0.15,
+    "right": 0.15,
+    "strength": 3.0,
+    "order": 3,
+    "x0": 0.0
+  }
+}

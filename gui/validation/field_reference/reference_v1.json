@@ -1,0 +1,2330 @@
+{
+  "contract_version": 1,
+  "anchor_revision": "pre-release development revision (not in the public git history)",
+  "generator_revision": "pre-release development revision (not in the public git history)",
+  "versions": {
+    "python": "3.9.6",
+    "numpy": "2.0.2",
+    "scipy": "1.13.1"
+  },
+  "source_sha256": {
+    "gui/rcwa1d.py": "d0c5192618965515025fb4bc89913df012a9e937c0cbb70ea2f22f630d122ce8",
+    "gui/mode_propagation.py": "e5690038644df079583f1dbcaf00e781820c776aac45f541ed5d2a45b73947e8",
+    "gui/spectral1d.py": "192188fb8601b6f4c6f14725d2cdd54086e4efb646dfaf192e80a56576391b01",
+    "gui/conical/rcwa_conical.py": "ef8a775cdb37530808610c7344a44cbfc7d5f57508601daacf9f86b7d378f997",
+    "gui/conical/fields_conical.py": "cf7d3ac656cf3d649d81692b8cf4d22914a42a53a1f60e1e7204b9bfb8a1f5a5",
+    "gui/conical/modes_conical.py": "c7d85d53e535dc575739ccbdbf904002b81210050eef3ab402bfd40266c92623",
+    "gui/conical/smatrix_adapt.py": "a6cf9109afcfba864a2fce2743fc1fcc07dabc7c44787da168d5b5c212d91366",
+    "gui/conical/spbasis.py": "712f4f8fc9710340d51b3606eed04f4d5ce61cf4574387160c38b2d120b9bbad",
+    "gui/conical/polarization.py": "16428f11b73fde0c66c83dec04a78c62f42617ecdcf3caea49f32e531f6d4f7e",
+    "gui/field_phase.py": "0d703f9a0d0d16b23ca0e61ade34364559513c2b93a16ca23095c8fca0db986c",
+    "gui/gui_fields.py": "776e572c5a714dd6157f6d4a9950010fea0a6dc90ead899a143928fd399a33a5"
+  },
+  "builder_sha256": {
+    "gui/validation/field_reference_cases.py": "ebebae8fee5475bece78457574b4b90f8ab89ea118ec33977f2a5a895399e638",
+    "gui/validation/generate_field_reference.py": "fef18ec329276e596f0b22d7f63cad50e39646ef65f679e70ed6cd52eecc2d35"
+  },
+  "archive": {
+    "filename": "reference_v1.npz",
+    "sha256": "b368f9dec978c8846f8e486a20ecb0d1ed4350ce501ee30da644b944d7d72746",
+    "bytes": 150647
+  },
+  "components": [
+    "Ex",
+    "Ey",
+    "Ez",
+    "Hx",
+    "Hy",
+    "Hz"
+  ],
+  "complex_encoding": "numpy complex128 (real + i imaginary)",
+  "layout": {
+    "fields": "[component,z,x]; x fastest",
+    "harmonics": "[component,z,order]; order fastest",
+    "phase": "[component,z,x]; radians, NaN where phase_mask is true",
+    "phase_mask": "true = undefined/masked",
+    "phase_comparison_mask": "true = excluded from cross-backend phase comparison",
+    "incident_amplitudes": "[|E_inc|,|Z0H_inc|]",
+    "wavenumbers": "kx,ky,kzI,kzII include k0; inverse length units",
+    "raw_fields": "H=Z0H; preserve scalar/vector incident normalization"
+  },
+  "phase_options": {
+    "phase_floor": 1e-06,
+    "unwrap": null
+  },
+  "comparison": {
+    "complex_fields": "abs(actual-reference) <= atol+rtol*abs(reference)",
+    "structural_zero": "Only abs(field)<=field atol; raw phase is not an oracle",
+    "phase_exclusion": "phase_mask OR abs(field)<=10*(atol+rtol*abs(field)) OR structural zero component",
+    "phase_metric": "abs(exp(i*actual_phase)-exp(i*reference_phase))",
+    "phase_tolerance": "2*(atol+rtol*abs(reference_field))/abs(reference_field)+5e-14"
+  },
+  "cases": [
+    {
+      "parameters": {
+        "id": "interface_te",
+        "mode": "planar",
+        "stack": {
+          "nI": 1.3,
+          "nII": 1.7,
+          "period": 0.73,
+          "layers": []
+        },
+        "wavelength": 0.81,
+        "theta_deg": 23.0,
+        "phi_deg": 0.0,
+        "M": 0,
+        "polarization": "TE",
+        "jones_in": null,
+        "psi_deg": 90.0,
+        "delta_deg": 0.0,
+        "zs": [
+          -0.19,
+          -0.03,
+          0.07,
+          0.21
+        ],
+        "nx": 5,
+        "y": 0.0,
+        "independent_validation": "Fresnel single interface, six complex components",
+        "structural_zero_components": [
+          "Ex",
+          "Ez",
+          "Hy"
+        ],
+        "expected_zero_modes": 0,
+        "expected_schur_layers": 0,
+        "tolerance": {
+          "atol": 3e-12,
+          "rtol": 3e-12
+        }
+      },
+      "diagnostics": {
+        "n_zero_modes": 0,
+        "n_schur": 0
+      },
+      "arrays": {
+        "x": {
+          "shape": [
+            5
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "interface_te__x"
+        },
+        "z": {
+          "shape": [
+            4
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "interface_te__z"
+        },
+        "y": {
+          "shape": [],
+          "dtype": "float64",
+          "order": "C",
+          "key": "interface_te__y"
+        },
+        "orders": {
+          "shape": [
+            1
+          ],
+          "dtype": "int64",
+          "order": "C",
+          "key": "interface_te__orders"
+        },
+        "kx": {
+          "shape": [
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "interface_te__kx"
+        },
+        "ky": {
+          "shape": [],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "interface_te__ky"
+        },
+        "kzI": {
+          "shape": [
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "interface_te__kzI"
+        },
+        "kzII": {
+          "shape": [
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "interface_te__kzII"
+        },
+        "fields": {
+          "shape": [
+            6,
+            4,
+            5
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "interface_te__fields"
+        },
+        "harmonics": {
+          "shape": [
+            6,
+            4,
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "interface_te__harmonics"
+        },
+        "phase_absolute": {
+          "shape": [
+            6,
+            4,
+            5
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "interface_te__phase_absolute"
+        },
+        "phase_incident": {
+          "shape": [
+            6,
+            4,
+            5
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "interface_te__phase_incident"
+        },
+        "phase_mask": {
+          "shape": [
+            6,
+            4,
+            5
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "interface_te__phase_mask"
+        },
+        "incident_amplitudes": {
+          "shape": [
+            2
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "interface_te__incident_amplitudes"
+        },
+        "phase_comparison_mask": {
+          "shape": [
+            6,
+            4,
+            5
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "interface_te__phase_comparison_mask"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "id": "absorbing_film_te",
+        "mode": "planar",
+        "stack": {
+          "nI": 1.4,
+          "nII": 0.6,
+          "period": 0.62,
+          "layers": [
+            {
+              "d": 0.41,
+              "n": [
+                1.8,
+                0.13
+              ]
+            }
+          ]
+        },
+        "wavelength": 0.83,
+        "theta_deg": 33.0,
+        "phi_deg": 0.0,
+        "M": 2,
+        "polarization": "TE",
+        "jones_in": null,
+        "psi_deg": 90.0,
+        "delta_deg": 0.0,
+        "zs": [
+          -0.09,
+          0.0,
+          0.07,
+          0.205,
+          0.41,
+          0.55,
+          0.73
+        ],
+        "nx": 7,
+        "y": 0.0,
+        "independent_validation": "Independent film boundary system; absorbing film + evanescent zero-order exit",
+        "structural_zero_components": [
+          "Ex",
+          "Ez",
+          "Hy"
+        ],
+        "expected_zero_modes": 0,
+        "expected_schur_layers": 0,
+        "tolerance": {
+          "atol": 3e-12,
+          "rtol": 3e-12
+        }
+      },
+      "diagnostics": {
+        "n_zero_modes": 0,
+        "n_schur": 0
+      },
+      "arrays": {
+        "x": {
+          "shape": [
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "absorbing_film_te__x"
+        },
+        "z": {
+          "shape": [
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "absorbing_film_te__z"
+        },
+        "y": {
+          "shape": [],
+          "dtype": "float64",
+          "order": "C",
+          "key": "absorbing_film_te__y"
+        },
+        "orders": {
+          "shape": [
+            5
+          ],
+          "dtype": "int64",
+          "order": "C",
+          "key": "absorbing_film_te__orders"
+        },
+        "kx": {
+          "shape": [
+            5
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "absorbing_film_te__kx"
+        },
+        "ky": {
+          "shape": [],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "absorbing_film_te__ky"
+        },
+        "kzI": {
+          "shape": [
+            5
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "absorbing_film_te__kzI"
+        },
+        "kzII": {
+          "shape": [
+            5
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "absorbing_film_te__kzII"
+        },
+        "fields": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "absorbing_film_te__fields"
+        },
+        "harmonics": {
+          "shape": [
+            6,
+            7,
+            5
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "absorbing_film_te__harmonics"
+        },
+        "phase_absolute": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "absorbing_film_te__phase_absolute"
+        },
+        "phase_incident": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "absorbing_film_te__phase_incident"
+        },
+        "phase_mask": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "absorbing_film_te__phase_mask"
+        },
+        "incident_amplitudes": {
+          "shape": [
+            2
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "absorbing_film_te__incident_amplitudes"
+        },
+        "phase_comparison_mask": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "absorbing_film_te__phase_comparison_mask"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "id": "grating_te",
+        "mode": "planar",
+        "stack": {
+          "nI": 1.2,
+          "nII": 1.4,
+          "period": 0.6,
+          "layers": [
+            {
+              "d": 0.2,
+              "edges": [
+                0.0,
+                0.21,
+                0.6
+              ],
+              "n_values": [
+                1.7,
+                1.0
+              ]
+            },
+            {
+              "d": 0.09,
+              "n": 1.46
+            }
+          ]
+        },
+        "wavelength": 0.83,
+        "theta_deg": 27.0,
+        "phi_deg": 0.0,
+        "M": 3,
+        "polarization": "TE",
+        "jones_in": null,
+        "psi_deg": 90.0,
+        "delta_deg": 0.0,
+        "zs": [
+          -0.12,
+          0.0,
+          0.083,
+          0.2,
+          0.245,
+          0.29,
+          0.39
+        ],
+        "nx": 9,
+        "y": 0.0,
+        "independent_validation": "phi=0 Cartesian fields; scalar/vector normalization",
+        "structural_zero_components": [
+          "Ex",
+          "Ez",
+          "Hy"
+        ],
+        "expected_zero_modes": 0,
+        "expected_schur_layers": 0,
+        "tolerance": {
+          "atol": 3e-12,
+          "rtol": 3e-12
+        }
+      },
+      "diagnostics": {
+        "n_zero_modes": 0,
+        "n_schur": 0
+      },
+      "arrays": {
+        "x": {
+          "shape": [
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "grating_te__x"
+        },
+        "z": {
+          "shape": [
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "grating_te__z"
+        },
+        "y": {
+          "shape": [],
+          "dtype": "float64",
+          "order": "C",
+          "key": "grating_te__y"
+        },
+        "orders": {
+          "shape": [
+            7
+          ],
+          "dtype": "int64",
+          "order": "C",
+          "key": "grating_te__orders"
+        },
+        "kx": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "grating_te__kx"
+        },
+        "ky": {
+          "shape": [],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "grating_te__ky"
+        },
+        "kzI": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "grating_te__kzI"
+        },
+        "kzII": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "grating_te__kzII"
+        },
+        "fields": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "grating_te__fields"
+        },
+        "harmonics": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "grating_te__harmonics"
+        },
+        "phase_absolute": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "grating_te__phase_absolute"
+        },
+        "phase_incident": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "grating_te__phase_incident"
+        },
+        "phase_mask": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "grating_te__phase_mask"
+        },
+        "incident_amplitudes": {
+          "shape": [
+            2
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "grating_te__incident_amplitudes"
+        },
+        "phase_comparison_mask": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "grating_te__phase_comparison_mask"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "id": "interface_tm",
+        "mode": "planar",
+        "stack": {
+          "nI": 1.3,
+          "nII": 1.7,
+          "period": 0.73,
+          "layers": []
+        },
+        "wavelength": 0.81,
+        "theta_deg": 23.0,
+        "phi_deg": 0.0,
+        "M": 0,
+        "polarization": "TM",
+        "jones_in": null,
+        "psi_deg": 90.0,
+        "delta_deg": 0.0,
+        "zs": [
+          -0.19,
+          -0.03,
+          0.07,
+          0.21
+        ],
+        "nx": 5,
+        "y": 0.0,
+        "independent_validation": "Fresnel single interface, six complex components",
+        "structural_zero_components": [
+          "Ey",
+          "Hx",
+          "Hz"
+        ],
+        "expected_zero_modes": 0,
+        "expected_schur_layers": 0,
+        "tolerance": {
+          "atol": 3e-12,
+          "rtol": 3e-12
+        }
+      },
+      "diagnostics": {
+        "n_zero_modes": 0,
+        "n_schur": 0
+      },
+      "arrays": {
+        "x": {
+          "shape": [
+            5
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "interface_tm__x"
+        },
+        "z": {
+          "shape": [
+            4
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "interface_tm__z"
+        },
+        "y": {
+          "shape": [],
+          "dtype": "float64",
+          "order": "C",
+          "key": "interface_tm__y"
+        },
+        "orders": {
+          "shape": [
+            1
+          ],
+          "dtype": "int64",
+          "order": "C",
+          "key": "interface_tm__orders"
+        },
+        "kx": {
+          "shape": [
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "interface_tm__kx"
+        },
+        "ky": {
+          "shape": [],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "interface_tm__ky"
+        },
+        "kzI": {
+          "shape": [
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "interface_tm__kzI"
+        },
+        "kzII": {
+          "shape": [
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "interface_tm__kzII"
+        },
+        "fields": {
+          "shape": [
+            6,
+            4,
+            5
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "interface_tm__fields"
+        },
+        "harmonics": {
+          "shape": [
+            6,
+            4,
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "interface_tm__harmonics"
+        },
+        "phase_absolute": {
+          "shape": [
+            6,
+            4,
+            5
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "interface_tm__phase_absolute"
+        },
+        "phase_incident": {
+          "shape": [
+            6,
+            4,
+            5
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "interface_tm__phase_incident"
+        },
+        "phase_mask": {
+          "shape": [
+            6,
+            4,
+            5
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "interface_tm__phase_mask"
+        },
+        "incident_amplitudes": {
+          "shape": [
+            2
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "interface_tm__incident_amplitudes"
+        },
+        "phase_comparison_mask": {
+          "shape": [
+            6,
+            4,
+            5
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "interface_tm__phase_comparison_mask"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "id": "absorbing_film_tm",
+        "mode": "planar",
+        "stack": {
+          "nI": 1.4,
+          "nII": 0.6,
+          "period": 0.62,
+          "layers": [
+            {
+              "d": 0.41,
+              "n": [
+                1.8,
+                0.13
+              ]
+            }
+          ]
+        },
+        "wavelength": 0.83,
+        "theta_deg": 33.0,
+        "phi_deg": 0.0,
+        "M": 2,
+        "polarization": "TM",
+        "jones_in": null,
+        "psi_deg": 90.0,
+        "delta_deg": 0.0,
+        "zs": [
+          -0.09,
+          0.0,
+          0.07,
+          0.205,
+          0.41,
+          0.55,
+          0.73
+        ],
+        "nx": 7,
+        "y": 0.0,
+        "independent_validation": "Independent film boundary system; absorbing film + evanescent zero-order exit",
+        "structural_zero_components": [
+          "Ey",
+          "Hx",
+          "Hz"
+        ],
+        "expected_zero_modes": 0,
+        "expected_schur_layers": 0,
+        "tolerance": {
+          "atol": 3e-12,
+          "rtol": 3e-12
+        }
+      },
+      "diagnostics": {
+        "n_zero_modes": 0,
+        "n_schur": 0
+      },
+      "arrays": {
+        "x": {
+          "shape": [
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "absorbing_film_tm__x"
+        },
+        "z": {
+          "shape": [
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "absorbing_film_tm__z"
+        },
+        "y": {
+          "shape": [],
+          "dtype": "float64",
+          "order": "C",
+          "key": "absorbing_film_tm__y"
+        },
+        "orders": {
+          "shape": [
+            5
+          ],
+          "dtype": "int64",
+          "order": "C",
+          "key": "absorbing_film_tm__orders"
+        },
+        "kx": {
+          "shape": [
+            5
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "absorbing_film_tm__kx"
+        },
+        "ky": {
+          "shape": [],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "absorbing_film_tm__ky"
+        },
+        "kzI": {
+          "shape": [
+            5
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "absorbing_film_tm__kzI"
+        },
+        "kzII": {
+          "shape": [
+            5
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "absorbing_film_tm__kzII"
+        },
+        "fields": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "absorbing_film_tm__fields"
+        },
+        "harmonics": {
+          "shape": [
+            6,
+            7,
+            5
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "absorbing_film_tm__harmonics"
+        },
+        "phase_absolute": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "absorbing_film_tm__phase_absolute"
+        },
+        "phase_incident": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "absorbing_film_tm__phase_incident"
+        },
+        "phase_mask": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "absorbing_film_tm__phase_mask"
+        },
+        "incident_amplitudes": {
+          "shape": [
+            2
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "absorbing_film_tm__incident_amplitudes"
+        },
+        "phase_comparison_mask": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "absorbing_film_tm__phase_comparison_mask"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "id": "grating_tm",
+        "mode": "planar",
+        "stack": {
+          "nI": 1.2,
+          "nII": 1.4,
+          "period": 0.6,
+          "layers": [
+            {
+              "d": 0.2,
+              "edges": [
+                0.0,
+                0.21,
+                0.6
+              ],
+              "n_values": [
+                1.7,
+                1.0
+              ]
+            },
+            {
+              "d": 0.09,
+              "n": 1.46
+            }
+          ]
+        },
+        "wavelength": 0.83,
+        "theta_deg": 27.0,
+        "phi_deg": 0.0,
+        "M": 3,
+        "polarization": "TM",
+        "jones_in": null,
+        "psi_deg": 90.0,
+        "delta_deg": 0.0,
+        "zs": [
+          -0.12,
+          0.0,
+          0.083,
+          0.2,
+          0.245,
+          0.29,
+          0.39
+        ],
+        "nx": 9,
+        "y": 0.0,
+        "independent_validation": "phi=0 Cartesian fields; scalar/vector normalization",
+        "structural_zero_components": [
+          "Ey",
+          "Hx",
+          "Hz"
+        ],
+        "expected_zero_modes": 0,
+        "expected_schur_layers": 0,
+        "tolerance": {
+          "atol": 3e-12,
+          "rtol": 3e-12
+        }
+      },
+      "diagnostics": {
+        "n_zero_modes": 0,
+        "n_schur": 0
+      },
+      "arrays": {
+        "x": {
+          "shape": [
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "grating_tm__x"
+        },
+        "z": {
+          "shape": [
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "grating_tm__z"
+        },
+        "y": {
+          "shape": [],
+          "dtype": "float64",
+          "order": "C",
+          "key": "grating_tm__y"
+        },
+        "orders": {
+          "shape": [
+            7
+          ],
+          "dtype": "int64",
+          "order": "C",
+          "key": "grating_tm__orders"
+        },
+        "kx": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "grating_tm__kx"
+        },
+        "ky": {
+          "shape": [],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "grating_tm__ky"
+        },
+        "kzI": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "grating_tm__kzI"
+        },
+        "kzII": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "grating_tm__kzII"
+        },
+        "fields": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "grating_tm__fields"
+        },
+        "harmonics": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "grating_tm__harmonics"
+        },
+        "phase_absolute": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "grating_tm__phase_absolute"
+        },
+        "phase_incident": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "grating_tm__phase_incident"
+        },
+        "phase_mask": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "grating_tm__phase_mask"
+        },
+        "incident_amplitudes": {
+          "shape": [
+            2
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "grating_tm__incident_amplitudes"
+        },
+        "phase_comparison_mask": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "grating_tm__phase_comparison_mask"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "id": "phi0_s",
+        "mode": "conical",
+        "stack": {
+          "nI": 1.2,
+          "nII": 1.4,
+          "period": 0.6,
+          "layers": [
+            {
+              "d": 0.2,
+              "edges": [
+                0.0,
+                0.21,
+                0.6
+              ],
+              "n_values": [
+                1.7,
+                1.0
+              ]
+            },
+            {
+              "d": 0.09,
+              "n": 1.46
+            }
+          ]
+        },
+        "wavelength": 0.83,
+        "theta_deg": 27.0,
+        "phi_deg": 0.0,
+        "M": 3,
+        "polarization": "s",
+        "jones_in": [
+          [
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "psi_deg": 90.0,
+        "delta_deg": 0.0,
+        "zs": [
+          -0.12,
+          0.0,
+          0.083,
+          0.2,
+          0.245,
+          0.29,
+          0.39
+        ],
+        "nx": 9,
+        "y": 0.0,
+        "independent_validation": "Full complex field mapping to grating_te/tm",
+        "structural_zero_components": [
+          "Ex",
+          "Ez",
+          "Hy"
+        ],
+        "expected_zero_modes": 0,
+        "expected_schur_layers": 0,
+        "tolerance": {
+          "atol": 3e-12,
+          "rtol": 3e-12
+        }
+      },
+      "diagnostics": {
+        "n_zero_modes": 0,
+        "n_schur": 0
+      },
+      "arrays": {
+        "x": {
+          "shape": [
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "phi0_s__x"
+        },
+        "z": {
+          "shape": [
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "phi0_s__z"
+        },
+        "y": {
+          "shape": [],
+          "dtype": "float64",
+          "order": "C",
+          "key": "phi0_s__y"
+        },
+        "orders": {
+          "shape": [
+            7
+          ],
+          "dtype": "int64",
+          "order": "C",
+          "key": "phi0_s__orders"
+        },
+        "kx": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "phi0_s__kx"
+        },
+        "ky": {
+          "shape": [],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "phi0_s__ky"
+        },
+        "kzI": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "phi0_s__kzI"
+        },
+        "kzII": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "phi0_s__kzII"
+        },
+        "fields": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "phi0_s__fields"
+        },
+        "harmonics": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "phi0_s__harmonics"
+        },
+        "phase_absolute": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "phi0_s__phase_absolute"
+        },
+        "phase_incident": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "phi0_s__phase_incident"
+        },
+        "phase_mask": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "phi0_s__phase_mask"
+        },
+        "incident_amplitudes": {
+          "shape": [
+            2
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "phi0_s__incident_amplitudes"
+        },
+        "phase_comparison_mask": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "phi0_s__phase_comparison_mask"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "id": "phi0_p",
+        "mode": "conical",
+        "stack": {
+          "nI": 1.2,
+          "nII": 1.4,
+          "period": 0.6,
+          "layers": [
+            {
+              "d": 0.2,
+              "edges": [
+                0.0,
+                0.21,
+                0.6
+              ],
+              "n_values": [
+                1.7,
+                1.0
+              ]
+            },
+            {
+              "d": 0.09,
+              "n": 1.46
+            }
+          ]
+        },
+        "wavelength": 0.83,
+        "theta_deg": 27.0,
+        "phi_deg": 0.0,
+        "M": 3,
+        "polarization": "p",
+        "jones_in": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1.0,
+            0.0
+          ]
+        ],
+        "psi_deg": 90.0,
+        "delta_deg": 0.0,
+        "zs": [
+          -0.12,
+          0.0,
+          0.083,
+          0.2,
+          0.245,
+          0.29,
+          0.39
+        ],
+        "nx": 9,
+        "y": 0.0,
+        "independent_validation": "Full complex field mapping to grating_te/tm",
+        "structural_zero_components": [
+          "Ey",
+          "Hx",
+          "Hz"
+        ],
+        "expected_zero_modes": 0,
+        "expected_schur_layers": 0,
+        "tolerance": {
+          "atol": 3e-12,
+          "rtol": 3e-12
+        }
+      },
+      "diagnostics": {
+        "n_zero_modes": 0,
+        "n_schur": 0
+      },
+      "arrays": {
+        "x": {
+          "shape": [
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "phi0_p__x"
+        },
+        "z": {
+          "shape": [
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "phi0_p__z"
+        },
+        "y": {
+          "shape": [],
+          "dtype": "float64",
+          "order": "C",
+          "key": "phi0_p__y"
+        },
+        "orders": {
+          "shape": [
+            7
+          ],
+          "dtype": "int64",
+          "order": "C",
+          "key": "phi0_p__orders"
+        },
+        "kx": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "phi0_p__kx"
+        },
+        "ky": {
+          "shape": [],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "phi0_p__ky"
+        },
+        "kzI": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "phi0_p__kzI"
+        },
+        "kzII": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "phi0_p__kzII"
+        },
+        "fields": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "phi0_p__fields"
+        },
+        "harmonics": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "phi0_p__harmonics"
+        },
+        "phase_absolute": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "phi0_p__phase_absolute"
+        },
+        "phase_incident": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "phi0_p__phase_incident"
+        },
+        "phase_mask": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "phi0_p__phase_mask"
+        },
+        "incident_amplitudes": {
+          "shape": [
+            2
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "phi0_p__incident_amplitudes"
+        },
+        "phase_comparison_mask": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "phi0_p__phase_comparison_mask"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "id": "conical_linear",
+        "mode": "conical",
+        "stack": {
+          "nI": 1.2,
+          "nII": 1.4,
+          "period": 0.6,
+          "layers": [
+            {
+              "d": 0.2,
+              "edges": [
+                0.0,
+                0.21,
+                0.6
+              ],
+              "n_values": [
+                1.7,
+                1.0
+              ]
+            },
+            {
+              "d": 0.09,
+              "n": 1.46
+            }
+          ]
+        },
+        "wavelength": 0.83,
+        "theta_deg": 27.0,
+        "phi_deg": 31.0,
+        "M": 3,
+        "polarization": "jones",
+        "jones_in": null,
+        "psi_deg": 37.0,
+        "delta_deg": 0.0,
+        "zs": [
+          -0.12,
+          0.0,
+          0.083,
+          0.2,
+          0.245,
+          0.29,
+          0.39
+        ],
+        "nx": 9,
+        "y": 0.11,
+        "independent_validation": "Map versus harmonics and Jones superposition",
+        "structural_zero_components": [],
+        "expected_zero_modes": 0,
+        "expected_schur_layers": 0,
+        "tolerance": {
+          "atol": 3e-12,
+          "rtol": 3e-12
+        }
+      },
+      "diagnostics": {
+        "n_zero_modes": 0,
+        "n_schur": 0
+      },
+      "arrays": {
+        "x": {
+          "shape": [
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "conical_linear__x"
+        },
+        "z": {
+          "shape": [
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "conical_linear__z"
+        },
+        "y": {
+          "shape": [],
+          "dtype": "float64",
+          "order": "C",
+          "key": "conical_linear__y"
+        },
+        "orders": {
+          "shape": [
+            7
+          ],
+          "dtype": "int64",
+          "order": "C",
+          "key": "conical_linear__orders"
+        },
+        "kx": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "conical_linear__kx"
+        },
+        "ky": {
+          "shape": [],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "conical_linear__ky"
+        },
+        "kzI": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "conical_linear__kzI"
+        },
+        "kzII": {
+          "shape": [
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "conical_linear__kzII"
+        },
+        "fields": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "conical_linear__fields"
+        },
+        "harmonics": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "conical_linear__harmonics"
+        },
+        "phase_absolute": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "conical_linear__phase_absolute"
+        },
+        "phase_incident": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "conical_linear__phase_incident"
+        },
+        "phase_mask": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "conical_linear__phase_mask"
+        },
+        "incident_amplitudes": {
+          "shape": [
+            2
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "conical_linear__incident_amplitudes"
+        },
+        "phase_comparison_mask": {
+          "shape": [
+            6,
+            7,
+            9
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "conical_linear__phase_comparison_mask"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "id": "schur_ellipse",
+        "mode": "conical",
+        "stack": {
+          "nI": 1.0,
+          "nII": 1.46,
+          "period": 0.574,
+          "layers": [
+            {
+              "d": 0.38,
+              "edges": [
+                0.0,
+                0.1722,
+                0.574
+              ],
+              "n_values": [
+                1.46,
+                1.0
+              ]
+            },
+            {
+              "d": 0.115,
+              "n": 1.96
+            }
+          ]
+        },
+        "wavelength": 0.980484673140678,
+        "theta_deg": 40.0,
+        "phi_deg": 25.0,
+        "M": 8,
+        "polarization": "jones",
+        "jones_in": [
+          [
+            0.3,
+            0.2
+          ],
+          [
+            -0.7,
+            0.5
+          ]
+        ],
+        "psi_deg": 90.0,
+        "delta_deg": 0.0,
+        "zs": [
+          -0.08,
+          0.0,
+          0.07,
+          0.19,
+          0.38,
+          0.435,
+          0.495,
+          0.58
+        ],
+        "nx": 9,
+        "y": 0.11,
+        "independent_validation": "test_degenerate_fields: 4N first-order propagation + six-component reconstruction",
+        "structural_zero_components": [],
+        "expected_zero_modes": 0,
+        "expected_schur_layers": 1,
+        "tolerance": {
+          "atol": 3e-10,
+          "rtol": 3e-10
+        }
+      },
+      "diagnostics": {
+        "n_zero_modes": 0,
+        "n_schur": 1
+      },
+      "arrays": {
+        "x": {
+          "shape": [
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "schur_ellipse__x"
+        },
+        "z": {
+          "shape": [
+            8
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "schur_ellipse__z"
+        },
+        "y": {
+          "shape": [],
+          "dtype": "float64",
+          "order": "C",
+          "key": "schur_ellipse__y"
+        },
+        "orders": {
+          "shape": [
+            17
+          ],
+          "dtype": "int64",
+          "order": "C",
+          "key": "schur_ellipse__orders"
+        },
+        "kx": {
+          "shape": [
+            17
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "schur_ellipse__kx"
+        },
+        "ky": {
+          "shape": [],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "schur_ellipse__ky"
+        },
+        "kzI": {
+          "shape": [
+            17
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "schur_ellipse__kzI"
+        },
+        "kzII": {
+          "shape": [
+            17
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "schur_ellipse__kzII"
+        },
+        "fields": {
+          "shape": [
+            6,
+            8,
+            9
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "schur_ellipse__fields"
+        },
+        "harmonics": {
+          "shape": [
+            6,
+            8,
+            17
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "schur_ellipse__harmonics"
+        },
+        "phase_absolute": {
+          "shape": [
+            6,
+            8,
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "schur_ellipse__phase_absolute"
+        },
+        "phase_incident": {
+          "shape": [
+            6,
+            8,
+            9
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "schur_ellipse__phase_incident"
+        },
+        "phase_mask": {
+          "shape": [
+            6,
+            8,
+            9
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "schur_ellipse__phase_mask"
+        },
+        "incident_amplitudes": {
+          "shape": [
+            2
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "schur_ellipse__incident_amplitudes"
+        },
+        "phase_comparison_mask": {
+          "shape": [
+            6,
+            8,
+            9
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "schur_ellipse__phase_comparison_mask"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "id": "zero_te",
+        "mode": "planar",
+        "stack": {
+          "nI": 2.0,
+          "nII": 2.0,
+          "period": 1.0,
+          "layers": [
+            {
+              "d": 0.1837762984739307,
+              "n": 0.9999999999999999
+            }
+          ]
+        },
+        "wavelength": 1.0,
+        "theta_deg": 30.0,
+        "phi_deg": 0.0,
+        "M": 0,
+        "polarization": "TE",
+        "jones_in": null,
+        "psi_deg": 90.0,
+        "delta_deg": 0.0,
+        "zs": [
+          -0.1,
+          0.0,
+          0.045944074618482676,
+          0.09188814923696535,
+          0.13783222385544802,
+          0.1837762984739307,
+          0.2837762984739307
+        ],
+        "nx": 7,
+        "y": 0.0,
+        "independent_validation": "test_degenerate_fields: exact constant/linear finite-layer solution",
+        "structural_zero_components": [
+          "Ex",
+          "Ez",
+          "Hy"
+        ],
+        "expected_zero_modes": 1,
+        "expected_schur_layers": 0,
+        "tolerance": {
+          "atol": 3e-12,
+          "rtol": 3e-12
+        }
+      },
+      "diagnostics": {
+        "n_zero_modes": 1,
+        "n_schur": 0
+      },
+      "arrays": {
+        "x": {
+          "shape": [
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "zero_te__x"
+        },
+        "z": {
+          "shape": [
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "zero_te__z"
+        },
+        "y": {
+          "shape": [],
+          "dtype": "float64",
+          "order": "C",
+          "key": "zero_te__y"
+        },
+        "orders": {
+          "shape": [
+            1
+          ],
+          "dtype": "int64",
+          "order": "C",
+          "key": "zero_te__orders"
+        },
+        "kx": {
+          "shape": [
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "zero_te__kx"
+        },
+        "ky": {
+          "shape": [],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "zero_te__ky"
+        },
+        "kzI": {
+          "shape": [
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "zero_te__kzI"
+        },
+        "kzII": {
+          "shape": [
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "zero_te__kzII"
+        },
+        "fields": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "zero_te__fields"
+        },
+        "harmonics": {
+          "shape": [
+            6,
+            7,
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "zero_te__harmonics"
+        },
+        "phase_absolute": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "zero_te__phase_absolute"
+        },
+        "phase_incident": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "zero_te__phase_incident"
+        },
+        "phase_mask": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "zero_te__phase_mask"
+        },
+        "incident_amplitudes": {
+          "shape": [
+            2
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "zero_te__incident_amplitudes"
+        },
+        "phase_comparison_mask": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "zero_te__phase_comparison_mask"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "id": "zero_tm",
+        "mode": "planar",
+        "stack": {
+          "nI": 2.0,
+          "nII": 2.0,
+          "period": 1.0,
+          "layers": [
+            {
+              "d": 0.1837762984739307,
+              "n": 0.9999999999999999
+            }
+          ]
+        },
+        "wavelength": 1.0,
+        "theta_deg": 30.0,
+        "phi_deg": 0.0,
+        "M": 0,
+        "polarization": "TM",
+        "jones_in": null,
+        "psi_deg": 90.0,
+        "delta_deg": 0.0,
+        "zs": [
+          -0.1,
+          0.0,
+          0.045944074618482676,
+          0.09188814923696535,
+          0.13783222385544802,
+          0.1837762984739307,
+          0.2837762984739307
+        ],
+        "nx": 7,
+        "y": 0.0,
+        "independent_validation": "test_degenerate_fields: exact constant/linear finite-layer solution",
+        "structural_zero_components": [
+          "Ey",
+          "Hx",
+          "Hz"
+        ],
+        "expected_zero_modes": 1,
+        "expected_schur_layers": 0,
+        "tolerance": {
+          "atol": 3e-12,
+          "rtol": 3e-12
+        }
+      },
+      "diagnostics": {
+        "n_zero_modes": 1,
+        "n_schur": 0
+      },
+      "arrays": {
+        "x": {
+          "shape": [
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "zero_tm__x"
+        },
+        "z": {
+          "shape": [
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "zero_tm__z"
+        },
+        "y": {
+          "shape": [],
+          "dtype": "float64",
+          "order": "C",
+          "key": "zero_tm__y"
+        },
+        "orders": {
+          "shape": [
+            1
+          ],
+          "dtype": "int64",
+          "order": "C",
+          "key": "zero_tm__orders"
+        },
+        "kx": {
+          "shape": [
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "zero_tm__kx"
+        },
+        "ky": {
+          "shape": [],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "zero_tm__ky"
+        },
+        "kzI": {
+          "shape": [
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "zero_tm__kzI"
+        },
+        "kzII": {
+          "shape": [
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "zero_tm__kzII"
+        },
+        "fields": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "zero_tm__fields"
+        },
+        "harmonics": {
+          "shape": [
+            6,
+            7,
+            1
+          ],
+          "dtype": "complex128",
+          "order": "C",
+          "key": "zero_tm__harmonics"
+        },
+        "phase_absolute": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "zero_tm__phase_absolute"
+        },
+        "phase_incident": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "zero_tm__phase_incident"
+        },
+        "phase_mask": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "zero_tm__phase_mask"
+        },
+        "incident_amplitudes": {
+          "shape": [
+            2
+          ],
+          "dtype": "float64",
+          "order": "C",
+          "key": "zero_tm__incident_amplitudes"
+        },
+        "phase_comparison_mask": {
+          "shape": [
+            6,
+            7,
+            7
+          ],
+          "dtype": "bool",
+          "order": "C",
+          "key": "zero_tm__phase_comparison_mask"
+        }
+      }
+    }
+  ]
+}

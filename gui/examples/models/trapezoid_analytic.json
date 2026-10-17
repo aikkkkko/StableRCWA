@@ -1,0 +1,1459 @@
+{
+  "schema_version": 1,
+  "name": "MLD 梯形单周期 · 解析",
+  "mode": "periodic",
+  "incident": {
+    "wavelength": 1.053,
+    "angle_deg": 66.36,
+    "polarization": "TE",
+    "M": 30,
+    "phi_deg": 0.0,
+    "psi_deg": 45.0,
+    "delta_deg": 0.0
+  },
+  "structure": {
+    "period": 0.574,
+    "n_incident": 1.0,
+    "n_substrate": 1.46,
+    "layers": [
+      {
+        "name": "渐变刻线 · 1/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.23513124999999999,
+          0.33886875,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 2/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.23459375,
+          0.33940624999999996,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 3/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.23405624999999997,
+          0.33994375,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 4/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.23351874999999997,
+          0.34048124999999996,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 5/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.23298124999999997,
+          0.34101875,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 6/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.23244374999999998,
+          0.34155625,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 7/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.23190624999999998,
+          0.34209375,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 8/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.23136874999999998,
+          0.34263125,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 9/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.23083125,
+          0.34316874999999997,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 10/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.23029374999999996,
+          0.34370625,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 11/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22975625,
+          0.34424374999999996,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 12/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22921874999999997,
+          0.34478125,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 13/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22868124999999997,
+          0.34531874999999995,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 14/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22814374999999998,
+          0.34585625,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 15/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22760624999999998,
+          0.34639374999999994,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 16/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22706874999999999,
+          0.34693124999999997,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 17/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22653124999999996,
+          0.34746875,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 18/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22599375,
+          0.34800624999999996,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 19/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22545624999999997,
+          0.34854375,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 20/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22491874999999997,
+          0.34908124999999995,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 21/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22438124999999998,
+          0.34961875,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 22/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22384374999999998,
+          0.35015624999999995,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 23/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22330624999999998,
+          0.35069374999999997,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 24/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22276875,
+          0.35123125,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 25/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22223125,
+          0.35176874999999996,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 26/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22169374999999997,
+          0.35230625,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 27/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22115625,
+          0.35284374999999996,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 28/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22061874999999997,
+          0.35338125,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 29/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.22008124999999998,
+          0.35391874999999995,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 30/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21954374999999998,
+          0.35445625,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 31/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21900624999999999,
+          0.35499375,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 32/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21846875,
+          0.35553124999999997,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 33/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21793124999999997,
+          0.35606875,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 34/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21739375,
+          0.35660624999999996,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 35/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21685624999999997,
+          0.35714375,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 36/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21631874999999998,
+          0.35768124999999995,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 37/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21578124999999998,
+          0.35821875,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 38/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21524374999999998,
+          0.35875625,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 39/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21470625,
+          0.35929374999999997,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 40/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21416874999999996,
+          0.35983125,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 41/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21363125,
+          0.36036874999999996,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 42/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21309374999999997,
+          0.36090625,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 43/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21255625,
+          0.36144374999999995,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 44/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21201874999999998,
+          0.36198125,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 45/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21148124999999998,
+          0.36251875,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 46/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21094374999999999,
+          0.36305624999999997,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 47/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.21040624999999996,
+          0.36359375,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 48/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20986875,
+          0.36413124999999996,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 49/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20933124999999997,
+          0.36466875,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 50/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20879375,
+          0.36520624999999995,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 51/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20825624999999998,
+          0.36574375,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 52/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20771874999999998,
+          0.36628125,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 53/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20718124999999998,
+          0.36681874999999997,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 54/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20664375,
+          0.36735624999999994,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 55/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20610625,
+          0.36789374999999996,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 56/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20556874999999997,
+          0.36843125,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 57/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20503125,
+          0.36896874999999996,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 58/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20449374999999997,
+          0.36950625,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 59/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20395624999999998,
+          0.37004375,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 60/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20341874999999998,
+          0.37058125,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 61/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20288124999999999,
+          0.37111874999999994,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 62/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20234375,
+          0.37165624999999997,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 63/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20180625,
+          0.37219375,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "渐变刻线 · 64/64",
+        "thickness": 0.0059375,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "patterned",
+        "edges": [
+          0.0,
+          0.20126875,
+          0.37273124999999996,
+          0.574
+        ],
+        "n_values": [
+          1.0,
+          1.46,
+          1.0
+        ],
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 匹配层 3L",
+        "thickness": 0.46438,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L · 1",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H · 1",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L · 2",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H · 2",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L · 3",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H · 3",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L · 4",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H · 4",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L · 5",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H · 5",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L · 6",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H · 6",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L · 7",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H · 7",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L · 8",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H · 8",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      },
+      {
+        "name": "SiO₂ 2L · 9",
+        "thickness": 0.30958,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.46,
+        "background_n": null
+      },
+      {
+        "name": "HfO₂ H · 9",
+        "thickness": 0.115306,
+        "fourier_method": "analytic",
+        "fft_samples": 0,
+        "kind": "uniform",
+        "n": 1.96,
+        "background_n": null
+      }
+    ]
+  },
+  "pml": {
+    "left": 0.0861,
+    "right": 0.0861,
+    "strength": 3.0,
+    "order": 3,
+    "x0": 0.0
+  },
+  "sampling": {
+    "z_min": -0.1,
+    "z_max": 0.85,
+    "nx": 480,
+    "nz": 280
+  },
+  "adaptive_pml": {
+    "enabled": false,
+    "target_tail": 0.001,
+    "verify": true,
+    "verification_rtol": 0.01,
+    "verification_quantity": "main",
+    "max_solves": 8,
+    "max_M": 300,
+    "max_width_factor": 4.0,
+    "max_seconds": 300.0,
+    "width_growth": 1.5,
+    "spectral_growth": 1.35,
+    "diagnostic_nx": 65,
+    "diagnostic_nz": 25,
+    "incident_floor": 1e-08,
+    "roi": null
+  },
+  "profile_geometry": {
+    "kind": "linear_ridge",
+    "shape": "trapezoid",
+    "period": 0.574,
+    "depth": 0.38,
+    "top_width": 0.1032,
+    "bottom_width": 0.172,
+    "center": 0.287,
+    "slices": 64,
+    "ridge_index": 1.46,
+    "groove_index": 1.0
+  }
+}

@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use StableRCWA in published work, please cite it using the metadata in this file."
+type: software
+title: StableRCWA
+abstract: >-
+  Header-only C++17 implementation of rigorous coupled-wave analysis (RCWA, the Fourier modal method)
+  for 1-D and 2-D periodic gratings, stable at high truncation orders. Includes conical incidence with
+  full Jones matrices, six-component near fields and phase, a JSON command-line interface and a local web GUI.
+authors:
+  - family-names: Ding
+    given-names: Xinhui
+version: 0.1.0
+date-released: 2026-10-17
+license: MIT
+repository-code: "https://github.com/aikkkkko/StableRCWA"
+keywords:
+  - RCWA
+  - rigorous coupled-wave analysis
+  - Fourier modal method
+  - diffraction grating
+  - photonics
+  - computational electromagnetics
