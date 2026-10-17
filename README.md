@@ -36,8 +36,8 @@ RCWA here means rigorous coupled-wave analysis, also called the Fourier modal me
   Command: `./rcwa_demo --case single --M 150 --eig lr`. Measured on Apple M1 Pro with Apple clang 17.
   The LR numbers change with compiler and CPU; the QR numbers do not.</sub>
 
-- **No dependencies.** Include the headers and call a function. Only the C++ standard library is used, and there is
-  nothing to build or link first.
+- **No external dependencies.** Include the headers and call a function. The FFT library pocketfft is bundled;
+  there is nothing to download, build or link first.
 - **Complete toolset:**
   - 1-D gratings, TE/TM;
   - conical incidence, with a full 2×2 Jones matrix per order;
@@ -196,12 +196,26 @@ and says so on the results page.
 | Six-component near fields and phase | ✓ | ✓ |
 | Finite (non-periodic) structures with lateral PML ¹ | – | 1-D, in-plane incidence |
 | Uniaxial layers (optic axis along x, y or z) ¹ | – | 1-D, TE/TM |
-| FFT-sampled Fourier coefficients, as an alternative to the analytic ones ¹ | – | 1-D |
+| FFT-sampled Fourier coefficients, as an alternative to the analytic ones | 1-D, TE/TM and conical | 1-D |
 | Magnetic media (μ ≠ 1) | – | experimental, not in the GUI |
 | General 6×6 constitutive tensors | – | 1-D, experimental, not in the GUI |
 | GPU eigen solver (CUDA cuSOLVER) | optional, experimental | – |
 
 <sub>¹ Inherited from the author's earlier Python package; their validation reports will be added to `docs/`.</sub>
+
+For a sampled FFT layer, use the bundled BSD-3-Clause [pocketfft](https://github.com/mreineck/pocketfft):
+
+```cpp
+auto layer = rcwa::Layer::grating(0.38, {0.0, 0.1722, 0.574}, {1.46, 1.0},
+                                rcwa::FourierMethod::FFT, 65536);
+stack.layers.push_back(layer);
+```
+
+The final sample count defaults to `0` (automatic); explicit counts must satisfy `N >= 4*M+1`, up to 4194304,
+and need not be powers of two. Analytic integration remains the default. JSON layers accept
+`"fourier_method": "fft", "fft_samples": 65536`; the GUI also routes eligible 1-D FFT models to C++.
+FFT samples ε and 1/ε independently at cell midpoints. Check convergence in both `M` and `N`.
+See the [Fourier API and sampling convention](docs/user-guide.zh-CN.md#一维-fourier-系数解析或-fft).
 
 Limitations:
 
@@ -253,7 +267,9 @@ If you use StableRCWA in published work, please cite it as described in [CITATIO
 
 ## License
 
-[MIT](LICENSE). The eigen solvers re-implement algorithms from EISPACK (see Acknowledgements); no third-party code is bundled.
+[MIT](LICENSE). The eigen solvers re-implement algorithms from EISPACK (see Acknowledgements).
+The bundled pocketfft retains its [BSD-3-Clause license](include/stablercwa/detail/pocketfft/LICENSE.md);
+include that notice when redistributing source or binaries.
 
 ## Acknowledgements
 

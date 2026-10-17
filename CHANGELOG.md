@@ -3,6 +3,18 @@
 All notable changes to StableRCWA are listed here. Version numbers follow [Semantic Versioning](https://semver.org/);
 while the version is 0.x, the interfaces may still change.
 
+## [Unreleased]
+
+- Bundle BSD-3-Clause pocketfft at commit `c90e55b3d529f8efa40ed01a20de22405f45fc65` without external build/link dependencies.
+- Add per-layer FFT material coefficients for C++ 1-D TE/TM and conical solvers, including fields and sweeps;
+  retain analytic coefficients by default. Match Python midpoint sampling, origin phase, normalization, independent
+  ε/1/ε transforms, automatic sample counts and support for non-power-of-two counts.
+- Accept `fourier_method` and `fft_samples` in 1-D JSON layers and route eligible GUI FFT models to C++.
+  Include vendored `.h` files in GUI rebuild detection.
+- Add direct-DFT, analytic-convergence, input-validation and C++/Python FFT regression coverage.
+- Isolate bundled pocketfft from application namespaces/configuration and preserve the NaN numerical-failure
+  result when finite refractive indices overflow during material-operator construction.
+
 ## [0.1.0] - 2026-10-17
 
 First public release.

@@ -5,7 +5,7 @@
 
 StableRCWA 由一组纯源码的 C++17 数值模块组成：LU 分解、QR 分解、LR 与 QR 两种本征迭代，以及建立在它们之上的 RCWA：
 一维光栅（平面内入射的 TE/TM，以及圆锥入射的 Jones 矩阵）和二维交叉光栅（x、y 两个方向都有周期，入射方向与偏振任意）。
-全部是头文件，只依赖 C++ 标准库，包含之后直接传参调用，不链接任何求解器库。折射率可以是复数（吸收介质）。
+全部是头文件，FFT 库 pocketfft 已内置，包含之后直接传参调用，不链接任何求解器或 FFT 库。折射率可以是复数（吸收介质）。
 另有 JSON 进出的命令行程序和一份本机网页界面。
 
 ## 构建与最小用法
@@ -75,6 +75,8 @@ include/stablercwa/
     eig_lr.hpp        eig_lr()：消元化 Hessenberg 形 + LR 迭代（EISPACK COMHES + COMLR2），只作对照
     eig.hpp           统一入口 eig()、本征对残差、正交性缺损
     rcwa1d.hpp        一维 RCWA：TE/TM、复折射率、S 矩阵递推、扫描并行
+    fourier.hpp       一维中点采样 FFT 系数、采样数检查与自动选择
+    detail/pocketfft/ 内置 pocketfft 单头文件和 BSD-3-Clause 许可证
     rcwa1d_conical.hpp   一维 RCWA 的圆锥入射：各级的 2×2 Jones 矩阵与效率
     rcwa2d_types.hpp     二维（交叉光栅）RCWA 的类型：Stack2D、Layer2D、Options2D、Result2D
     rcwa2d_operators.hpp 二维的 Fourier 算子 ⟦ε⟧、Cx、Cy（Li 因式分解）
@@ -132,6 +134,42 @@ rcwa::Result r = rcwa::solve(stack, 1.053, 66.36, 40, rcwa::Polarization::TE);
   TM 的 `R = 1/17, T = 16/17`，与 COMSOL 的对照见[验证](validation.zh-CN.md)。
   近零而非零、亏损本征基及部分外部掠射边界仍有限制，见 `rcwa1d.hpp` 开头的说明。
 - `rcwa::sweep(stack, points, M, pol, options)` 对一组（波长，入射角）并行求解，线程数由 `set_num_threads` 设定，结果与线程数无关。
+
+## 一维 Fourier 系数：解析或 FFT
+
+`Layer::grating` 默认保留解析积分。需要 FFT 时可为每层独立指定：
+
+```cpp
+auto layer = rcwa::Layer::grating(0.38, {0.0, 0.1722, 0.574}, {1.46, 1.0},
+                                rcwa::FourierMethod::FFT, 65536);
+// 也可修改现有层：
+layer.fourier_method = rcwa::FourierMethod::FFT;
+layer.fft_samples = 0;  // 自动选择
+stack.layers.push_back(layer);
+```
+
+平面 TE/TM、圆锥入射、扫描及六分量近场共用该设置。同一堆栈可混用解析与 FFT 层，均匀层始终使用解析方式。
+JSON 的一维层接受 `"fourier_method": "analytic" | "fft"` 和 `"fft_samples": N`，省略时分别为 `analytic`、`0`。
+二维材料算子暂仍只使用解析积分。
+
+`rcwa::resolve_fft_samples(M, N)` 返回实际点数：`0` 取不小于 `max(8192, 64*(2*M+1))` 的最小 2 次幂；
+显式 `N` 不要求是 2 次幂，但必须大于 `4*M`，以独立保存 `-2M..2M` 的系数。点数上限 4194304，非法设置抛出
+`std::invalid_argument`；JSON 会在对应层的 `fft_samples` 字段报错。
+
+只需要系数时可包含 `stablercwa/fourier.hpp`，调用：
+
+```cpp
+auto c = rcwa::fourier_coefficients_fft(edges, values, period, hmax, N);
+// c[h+hmax] = c_h，f(x) = Σ c_h exp(+i 2πh x/period)，须 N > 2*hmax。
+```
+
+实现与 `gui/spectral1d.py` 一致：在 `edges[0] + (j+1/2)*period/N` 处取分段材料值，做前向 FFT 并除以 N，
+再补偿绝对原点和半采样间距的相位。边界恰好落在采样点时取右侧分段。复材料不作共轭对称假设；ε 与 1/ε 分别采样、分别 FFT，
+保留 TM 与圆锥算法的 Li 逆规则。FFT 引入材料离散误差，需要增加 N 检查收敛，也仍需检查 M。
+
+FFT 使用随源码固定版本的 [pocketfft](https://github.com/mreineck/pocketfft)，无需外部链接。
+来源、固定 commit 和 BSD-3-Clause 许可见 `include/stablercwa/detail/pocketfft/`。
+每次 FFT 使用一个线程，层间和扫描并行仍由 StableRCWA 管理。
 
 ## 圆锥入射
 
@@ -361,11 +399,11 @@ c++ -std=c++17 -O2 -I include -I examples examples/rcwa_json.cpp -o rcwa_json
 
 **一维模型：**
 
-- 各向同性、解析 Fourier 的平面 TE/TM 与圆锥模型，由 C++ 一次求解各级效率、Jones、六复场和相位；Python 负责建模、显示与保存。
+- 各向同性、解析或 FFT Fourier 的平面 TE/TM 与圆锥模型，由 C++ 一次求解各级效率、Jones、六复场和相位；Python 负责建模、显示与保存。
   界面启动时会自动把 `examples/rcwa_fields.cpp` 编译到 `gui/bin/`，需要系统里有 C++ 编译器。
 - 正常的 C++ 路径不再重复做 Python 数值求解；设 `RCWA_VERIFY_PYTHON=1` 才另做一次 Python 求解来核对。
   切换分量和相位时读取预存的 C++ 相位与掩膜。
-- 横向 PML（有限、非周期结构）、单轴晶体、FFT Fourier 系数的一维模型由 Python 求解。
+- 横向 PML（有限、非周期结构）、单轴晶体的一维模型由 Python 求解。
 - Python 的周期平面 / 圆锥路径同样支持有限层精确零根与圆锥 Schur 近场；`field_at` 与 `field_map` 共用传播核。
   PML、二维、磁性扩展以及外部精确掠射边界保持原来的限制。
 

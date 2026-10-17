@@ -140,11 +140,14 @@ class FullCppWorker(TemporaryCase):
         schur_cfg = gui_models.from_stack(reference_stack(schur["stack"]), name="Schur", lam0=schur["wavelength"],
             theta_deg=schur["theta_deg"], M=schur["M"], pol="jones", phi_deg=schur["phi_deg"], psi_deg=35., delta_deg=80.)
         schur_cfg["sampling"].update(nx=41, nz=23)
+        fft_models = [model("TE"), model("TM"), model(conical=True)]
+        for cfg in fft_models:
+            cfg["structure"]["layers"][0].update(fourier_method="fft", fft_samples=1009)
         with self.cpp_environment(), ExitStack() as patches:
             for module, name in ((rc,"solve"), (rc,"field_map"), (rcwa_conical,"solve_conical"),
                                  (fields_conical,"field_map"), (field_phase,"phase_data"), (np,"angle")):
                 patches.enter_context(patch.object(module, name, side_effect=AssertionError("Python numerical call: "+name)))
-            for index, cfg in enumerate((model("TE"), model("TM"), model(conical=True), schur_cfg)):
+            for index, cfg in enumerate((model("TE"), model("TM"), model(conical=True), schur_cfg, *fft_models)):
                 with self.subTest(model=index):
                     metrics, fields, folder = self.run_worker(cfg, str(index))
                     block = metrics["backend"]
@@ -152,6 +155,9 @@ class FullCppWorker(TemporaryCase):
                     self.assertFalse(block["python_solve_ran"])
                     self.assertEqual(block["python_solve_seconds"], 0.)
                     self.assertIsNone(block["max_efficiency_difference"])
+                    if index >= 4:
+                        info = metrics["fourier_layers"][0]
+                        self.assertEqual((info["method"], info["fft_samples"]), ("fft", 1009))
                     for component in gui_fields.COMPONENTS:
                         self.assertTrue(np.isfinite(fields[component]).all())
                         for quantity in ("phase","phase_relative"):
@@ -166,6 +172,23 @@ class FullCppWorker(TemporaryCase):
                     with np.load(exported, allow_pickle=False) as archive:
                         self.assertEqual(archive["phase_archive_version"], 1)
                         np.testing.assert_array_equal(archive["phase_masks"], fields["phase_masks"])
+
+    def test_fft_six_fields_match_python(self):
+        self.need_cpp()
+        worst = 0.
+        for pol, conical in (("TE", False), ("TM", False), ("TE", True)):
+            cfg = model(pol, conical=conical)
+            cfg["structure"]["layers"][0].update(fourier_method="fft", fft_samples=1009)
+            # Full workers independently reconstruct all six fields on the same grid.
+            with self.cpp_environment():
+                cpp_metrics, cpp_fields, _ = self.run_worker(cfg, pol + str(conical) + "_cpp")
+            with self.cpp_environment(), environment(RCWA_BACKEND="python"):
+                _, py_fields, _ = self.run_worker(cfg, pol + str(conical) + "_python")
+            self.assertEqual(cpp_metrics["backend"]["fields"], "cpp")
+            for component in gui_fields.COMPONENTS:
+                np.testing.assert_allclose(cpp_fields[component], py_fields[component], atol=2e-9, rtol=2e-9)
+                worst = max(worst, float(np.max(abs(cpp_fields[component] - py_fields[component]))))
+        print("\n    FFT six-field C++/Python max difference: %.3e" % worst)
 
     def test_explicit_verification_failure_preserves_cpp_success(self):
         self.need_cpp()
@@ -216,8 +239,8 @@ class Fallback(TemporaryCase):
     def test_forced_unsupported_missing_and_old_override(self):
         cases = []
         forced = model();cases.append(("forced", forced, {"RCWA_BACKEND":"python"}, "RCWA_BACKEND"))
-        fft = model();fft["structure"]["layers"][0]["fourier_method"] = "fft"
-        cases.append(("fft", fft, {}, "FFT"))
+        uniaxial = model();uniaxial["structure"]["layers"][0]["n_values"][0] = "1.658/1.486@x"
+        cases.append(("uniaxial", uniaxial, {}, "单轴"))
         cases.append(("missing", model(), {"RCWA_FIELDS_EXE":self.tmp/"不存在"}, "不存在"))
         cases.append(("old", model(), {"RCWA_FIELDS_EXE":None,"RCWA_JSON_EXE":self.tmp/"old_far"}, "旧效率协议"))
         for name, cfg, extra, reason in cases:

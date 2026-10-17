@@ -26,7 +26,7 @@ RCWA 即严格耦合波分析，也叫 Fourier 模态法。
   命令：`./rcwa_demo --case single --M 150 --eig lr`。环境：Apple M1 Pro，Apple clang 17。
   LR 的数字随编译器和处理器变化，QR 的不变。</sub>
 
-- **零依赖。** 包含头文件就能调用，只用 C++ 标准库，不用先编译或链接任何库。
+- **无外部依赖。** 包含头文件就能调用，FFT 库 pocketfft 已随源码内置，不用另行下载、编译或链接任何库。
 - **功能完整：**
   - 一维光栅 TE/TM；
   - 圆锥入射，每一级给出完整的 2×2 Jones 矩阵；
@@ -183,12 +183,25 @@ python3 gui/gui.py
 | 六分量近场与相位 | ✓ | ✓ |
 | 有限（非周期）结构，横向 PML ¹ | – | 一维，入射面内入射 |
 | 单轴晶体层（光轴沿 x、y 或 z）¹ | – | 一维，TE/TM |
-| FFT 采样的 Fourier 系数（解析系数之外的另一种算法）¹ | – | 一维 |
+| FFT 采样的 Fourier 系数（解析系数之外的另一种算法） | 一维 TE/TM、圆锥 | 一维 |
 | 磁性介质（μ ≠ 1） | – | 实验性，未接入界面 |
 | 一般 6×6 本构张量 | – | 一维，实验性，未接入界面 |
 | GPU 本征分解（CUDA cuSOLVER） | 可选，实验性 | – |
 
 <sub>¹ 来自作者早先的 Python 求解器包，验证报告之后补进 `docs/`。</sub>
+
+一维分段层可选用内置的 BSD-3-Clause 开源库 [pocketfft](https://github.com/mreineck/pocketfft)：
+
+```cpp
+auto layer = rcwa::Layer::grating(0.38, {0.0, 0.1722, 0.574}, {1.46, 1.0},
+                                rcwa::FourierMethod::FFT, 65536);
+stack.layers.push_back(layer);
+```
+
+最后一个采样数参数可省略，默认 `0` 自动选点；显式点数须满足 `N >= 4*M+1`、不超过 4194304，允许非 2 次幂。
+解析积分仍是默认。JSON 层可加 `"fourier_method": "fft", "fft_samples": 65536`；界面中的一维各向同性 FFT 模型也会走 C++。
+FFT 对 ε 与 1/ε 分别做均匀中点采样，需要同时检查 `M` 与 `N` 的收敛。
+详见[Fourier 接口与采样约定](docs/user-guide.zh-CN.md#一维-fourier-系数解析或-fft)。
 
 使用时要注意：
 
@@ -238,7 +251,8 @@ cd build && ctest -C Release
 
 ## 许可证
 
-[MIT](LICENSE)。本征分解按 EISPACK 的算法重新编写（见致谢），仓库里没有打包任何第三方代码。
+[MIT](LICENSE)。本征分解按 EISPACK 的算法重新编写（见致谢）。
+内置的 pocketfft 保留其 [BSD-3-Clause 许可证](include/stablercwa/detail/pocketfft/LICENSE.md)，分发源码或二进制时须附带该许可声明。
 
 ## 致谢
 

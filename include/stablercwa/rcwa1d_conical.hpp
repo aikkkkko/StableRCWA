@@ -314,9 +314,10 @@ inline Operators assemble(const Layer& layer, double period, const RealVector& k
     }
     const int size = 2 * M + 1;
     Operators out;
-    Matrix e = convolution_matrix(edges, eps, period, M);
+    const FourierMethod method = layer.homogeneous ? FourierMethod::Analytic : layer.fourier_method;
+    Matrix e = convolution_matrix(edges, eps, period, M, method, layer.fft_samples);
     out.inv_eps = linear_solve(e, Matrix::identity(size), work);
-    out.c = linear_solve(convolution_matrix(edges, inv, period, M), Matrix::identity(size), work);
+    out.c = linear_solve(convolution_matrix(edges, inv, period, M, method, layer.fft_samples), Matrix::identity(size), work);
     // B = Kx·⟦ε⟧⁻¹·Kx − I：Kx 是对角阵，左右各乘一次只是按行、按列缩放
     Matrix b = out.inv_eps;
     for (int j = 0; j < size; ++j) {
@@ -685,7 +686,7 @@ inline ConicalResult solve_conical_impl(const Stack& stack, double wavelength, d
     dt::check_index(stack.nII);
     if (stack.nII.imag() != 0.0)
         throw std::invalid_argument("rcwa: conical incidence needs a real index in the exit medium");
-    for (const Layer& layer : stack.layers) dt::check_layer(layer, stack.period);
+    for (const Layer& layer : stack.layers) dt::check_layer(layer, stack.period, M);
     if (options.linear != LinearSolver::LUPartial && options.linear != LinearSolver::LUNoPivot &&
         options.linear != LinearSolver::QRHouseholder)
         throw std::invalid_argument("rcwa: unknown linear solver");
