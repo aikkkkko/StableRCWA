@@ -2,7 +2,20 @@
 #define POCKETFFT_NAMESPACE application_fft
 #define POCKETFFT_CACHE_SIZE 2
 #define POCKETFFT_NO_VECTORS
+// The simulated application silences the upstream header's own warnings, as an application would.
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4127 4324)
+#elif defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 #include "stablercwa/detail/pocketfft/pocketfft_hdronly.h"
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#elif defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 #include "stablercwa/matrix.hpp"
 #define min(a, b) windows_min_macro(a, b)
 #define max(a, b) windows_max_macro(a, b)
