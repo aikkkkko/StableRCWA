@@ -1,0 +1,6 @@
+LIBRARY mkl_rt.3.dll
+EXPORTS
+    zgeev_64_
+    dgeev_64_
+    MKL_Set_Num_Threads_Local
+    MKL_Get_Version_String

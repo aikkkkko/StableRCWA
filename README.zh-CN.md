@@ -187,6 +187,7 @@ python3 gui/gui.py
 | 磁性介质（μ ≠ 1） | – | 实验性，未接入界面 |
 | 一般 6×6 本构张量 | – | 一维，实验性，未接入界面 |
 | GPU 本征分解（CUDA cuSOLVER） | 可选，实验性 | – |
+| oneMKL 本征分解，给 DLL 项目直接替换的单个 .cpp（Windows x64） | 可选，[`standalone/`](standalone/README.zh-CN.md) | – |
 
 <sub>¹ 来自作者早先的 Python 求解器包，验证报告之后补进 `docs/`。</sub>
 
@@ -208,6 +209,22 @@ FFT 对 ε 与 1/ε 分别做均匀中点采样，需要同时检查 `M` 与 `N`
 - 截断阶数要自己做收敛检查。二维比一维收敛慢。
 - 入射介质必须无吸收。圆锥入射时，出射介质也必须无吸收。
 - 只有关掉 FMA 融合（`-ffp-contract=off`）时，多线程本征分解的结果才验证过与单线程逐位相同。
+
+## 可选：给 DLL 项目用的 oneMKL 本征分解单文件
+
+[`standalone/`](standalone/README.zh-CN.md) 里的 `MatrixEigenValueAndEigenVector_MKL.cpp` 是给 Windows x64 上 C++ DLL
+项目用的单个源文件。它导出实矩阵、复矩阵两个版本的 `MatrixEigenValueAndEigenVector`，返回按实部排序的全部本征值和
+右本征向量，计算交给 Intel oneMKL 的 LAPACK（实矩阵用 `dgeev`，复矩阵用 `zgeev`）。它与只有头文件的库是分开的，
+库本身仍然不依赖任何外部库。
+
+- **更快。** 在 16 核的 AMD Ryzen 9 5950X 上，比 8 线程的 `eig_qr` 快：复矩阵 1.5 到 5.5 倍，实矩阵 3.1 到 12.4 倍
+  （n = 300 到 4000）。4000 阶时复矩阵 36 秒、实矩阵 16 秒，`eig_qr` 要 199 秒。
+- **要 oneMKL 2025.0.1 或更新。** AMD 处理器、Windows 上，oneMKL 2024.2.2 和 2025.0.0 的 `dgeev` 会写出工作区，
+  把内存改坏。文件运行时检查 MKL 的版本，遇到这两个版本就不调 `dgeev`。
+- **一键装运行库。** `standalone/install_mkl.bat` 从 PyPI 下载 oneMKL 2026.2.0，核对 SHA-256，把 DLL 放进
+  `standalone/mkl/bin`，不往系统里装任何东西。
+
+Visual Studio 里的设置、接口约定、完整的用时表和测试见 [standalone/README.zh-CN.md](standalone/README.zh-CN.md)。
 
 ## 验证
 

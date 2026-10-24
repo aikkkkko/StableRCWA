@@ -5,6 +5,11 @@ while the version is 0.x, the interfaces may still change.
 
 ## [Unreleased]
 
+- Add `standalone/MatrixEigenValueAndEigenVector_MKL.cpp`, a single-file drop-in for C++ DLL projects that computes
+  eigenvalues and eigenvectors with oneMKL (`dgeev` for real and `zgeev` for complex matrices, 64-bit integer
+  interface). It needs oneMKL 2025.0.1 or newer and checks the version at run time to avoid the `dgeev` bug of
+  2024.2.2 and 2025.0.0 on AMD processors under Windows. Add `standalone/install_mkl.bat`, which downloads the oneMKL
+  runtime from PyPI, and an opt-in CMake test (`STABLERCWA_BUILD_STANDALONE_MKL`).
 - Bundle BSD-3-Clause pocketfft at commit `c90e55b3d529f8efa40ed01a20de22405f45fc65` without external build/link dependencies.
 - Add per-layer FFT material coefficients for C++ 1-D TE/TM and conical solvers, including fields and sweeps;
   retain analytic coefficients by default. Match Python midpoint sampling, origin phase, normalization, independent
