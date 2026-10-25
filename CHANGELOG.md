@@ -19,6 +19,25 @@ while the version is 0.x, the interfaces may still change.
 - Add direct-DFT, analytic-convergence, input-validation and C++/Python FFT regression coverage.
 - Isolate bundled pocketfft from application namespaces/configuration and preserve the NaN numerical-failure
   result when finite refractive indices overflow during material-operator construction.
+- Add `custom_multiply` and `custom_solve` to `rcwa::Options` and `rcwa::Options2D`. Like `custom_eig`, they hand the
+  dense matrix products and the partial-pivoting LU solves of the 1-D, conical and 2-D solvers to another library.
+  Without them the results are bitwise unchanged. A new test checks that hooks calling the library's own kernels give
+  bitwise identical results.
+- Add an optional oneMKL backend for the RCWA solvers, `include/stablercwa/mkl/mkl_backend.hpp`. It provides
+  `mkl::eig` (`zgeev`), `mkl::multiply` (`zgemm`) and `mkl::solve` (`zgetrf` and `zgetrs`), hooks for `custom_eig`,
+  `custom_multiply` and `custom_solve`, and `mkl::use_mkl`, which sets all three. With `mkl::Settings::real_path` on,
+  which is meant for structures without absorbing layers, layer matrices that are real up to rounding go to `dgeev`;
+  that is the case for lossless structures symmetric about the origin or the cell centre. MKL uses as many threads as
+  `set_num_threads()`, and one thread per call inside parallel regions. On a 16-core Ryzen 9 5950X a whole solve is
+  1.6 to 5.9 times faster. Results agree with the built-in solvers to about 1e-12 but are no longer bitwise identical
+  across thread counts.
+- The JSON entry accepts `"options": {"backend": "mkl"}` (default `"builtin"`) when it is compiled with
+  `STABLERCWA_WITH_MKL=1`. It hands all three operations to MKL and turns `real_path` on when no layer index has an
+  imaginary part. Combining it with `"eig": "lr"` or with `"linear": "lu_nopivot"` or `"qr"` is a request error, and
+  without the macro the request gets an error that says why.
+- New CMake option `STABLERCWA_WITH_MKL` (off by default). It provides the target `stablercwa_mkl` and builds
+  `test_rcwa_mkl`, `bench_mkl_rcwa` and `rcwa_json_mkl`. The import library `standalone/mkl/lib/mkl_rt.lib` now also
+  exports `zgemm_64_`, `zgetrf_64_` and `zgetrs_64_`.
 
 ## [0.1.0] - 2026-10-17
 

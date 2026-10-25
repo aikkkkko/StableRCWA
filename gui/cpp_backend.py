@@ -8,8 +8,8 @@ GUI 的生产完整路径位于 cpp_fields_backend.py，调用 rcwa_fields 一�
     求解方式是“周期 RCWA · 平面入射”（TE/TM）或“周期 RCWA · 圆锥入射”，所有材料各向同性，
     分段层的 Fourier 系数可取解析积分或 FFT。这时各级衍射效率（圆锥还有复 Jones 矩阵）由 C++ 算。
     二维周期（periodic2d）：材料各向同性、Fourier 系数取解析积分、谐波总数 N=(2M+1)(2My+1) 不超过 625 的模型 C++ 也能算，
-    但**默认仍由 Python 求解器计算**：实测 C++ 的二维本征分解在每个 N 上都比 Python 慢（DEFAULT_BACKEND_2D 的注释有数字与改回的条件）。
-    环境变量 RCWA_2D_BACKEND=cpp 打开二维的 C++ 路径（一维完全不受这个开关影响）。
+    但**默认仍由 Python 求解器计算**：实测 C++ 只在谐波数较多时快一些，N 小时还慢一点（DEFAULT_BACKEND_2D 的注释有数字与改默认的条件）。
+    界面的“二维求解”选项（模型里的 backend_2d）选 C++，或者环境变量 RCWA_2D_BACKEND=cpp，打开二维的 C++ 路径（一维完全不受影响）。
     二维没有横向 PML、单轴晶体、FFT 系数与磁性：界面入口（gui_models_2d.normalize_2d）就拒绝这几类模型，
     不会交给任何求解器；一维的 PML、单轴晶体模型仍由 Python 求解器完成。
     这一版两边都算：C++ 给出结果页上的效率，Python 照常求解并重建场，两组效率之差记进 metrics.json。
@@ -25,6 +25,7 @@ GUI 的生产完整路径位于 cpp_fields_backend.py，调用 rcwa_fields 一�
 环境变量
     RCWA_BACKEND=python    强制只用 Python 求解器（一维、二维都是；RCWA_BACKEND 取别的值，包括 cpp，都不起作用）
     RCWA_2D_BACKEND=       二维周期模型用哪个求解器：python（不设或留空时的默认）或 cpp；别的值按默认处理并在 note 里说明。
+                           它决定的是默认：界面“二维求解”选项的初始值取它；模型里写了 backend_2d（界面每次计算都写）时以模型为准。
                            只管二维：不设它时二维走 Python；RCWA_BACKEND=cpp 不会替它打开二维的 C++ 路径（它本来就不是有效的取值）
     RCWA_JSON_EXE=路径      直接用这个可执行文件，不再查找和编译
     RCWA_CXX=编译器         指定编译器（名字或完整路径）；不设时依次找 c++、g++、clang++，Windows 上再找 cl
@@ -555,7 +556,7 @@ def warmup():
         else:
             message = (f"C++ 后端：{exe}" + (f"（{note}）" if note else "")
                        + ("；平面 TE/TM、圆锥入射与二维周期的衍射效率由它计算。" if backend_2d()[0] == "cpp"
-                          else "；平面 TE/TM 与圆锥入射的衍射效率由它计算（二维周期默认用 Python，RCWA_2D_BACKEND=cpp 改用 C++）。"))
+                          else "；平面 TE/TM 与圆锥入射的衍射效率由它计算（二维周期默认用 Python，界面的“二维求解”选 C++ 或 RCWA_2D_BACKEND=cpp 改用 C++）。"))
     # 路径里可能有控制台的编码（中文 Windows 上是 GBK）写不出的字符：换成 ?，不让这一行出错
     encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
     message = message.encode(encoding, "replace").decode(encoding)
@@ -583,15 +584,23 @@ def _index(value):
 
 MAX_HARMONICS_2D = 625          # 二维谐波总数的上限（与 gui_models_2d.normalize_2d 的入口限制相同）
 
-# 二维周期模型默认交给哪个求解器（环境变量 RCWA_2D_BACKEND 可以改，取值见 BACKENDS_2D）。
-# 默认是 "python"，理由是实测：C++ 的二维本征分解在每个 N 上都比 Python 慢——Mac、界面默认的 8 个线程、预设那样一个结构层加两层均匀膜、nx=360、nz=220，
-# 取两次的较小值：N = 169 / 289 / 625 用 C++ 0.93 / 1.81 / 13.5 s，用 Python 0.69 / 1.72 / 9.24 s；单线程时 C++ 慢 1.2–2.1 倍（这些数字测于 eig_qr 多线程化之前）。
-# C++ 路径另有一个代价：一次要写几百 MB 的结果文件（nx=1600、nz=1200 时 391 MB）。
-# 改回 "cpp" 的条件（两条都要满足）：① C++ 的本征分解已经并行化；② 在界面默认线程数下，N = 169、289、625 三档的实测用时都不比 Python 慢。
-# 满足之前，只有明确设了 RCWA_2D_BACKEND=cpp 的人才走二维的 C++ 路径；这个开关只管二维，一维的路由与这个常量无关。
+# 二维周期模型默认交给哪个求解器（环境变量 RCWA_2D_BACKEND 可以改默认，界面的“二维求解”选项可以逐次选；取值见 BACKENDS_2D）。
+# 默认是 "python"。2026-10-26 的实测（gui_worker 整个工作进程的墙上时间，含启动、求解、场重建与保存；预设那样一个结构层加两层
+# 均匀膜，nx=360、nz=220；Python 与 C++ 交错各跑 3 次取最快；eig_qr 已经多线程化）：
+#   Mac（Apple M1 Pro，界面默认 6 个线程，/usr/bin/python3 3.9.6、NumPy 2.0.2 / Accelerate，平均负载约 6），N = 169 / 289 / 625：
+#     Python 0.91 / 1.93 / 8.73 s，C++（界面现场编译）1.13 / 1.60 / 6.53 s；
+#   Windows（Ryzen 9 5950X，界面默认 16 个线程，Python 3.11、NumPy 1.26.4 / OpenBLAS），同样三档：
+#     Python 2.03 / 3.05 / 7.61 s，C++（界面现场编译，MinGW g++ 13.1）2.01 / 2.51 / 6.92 s，MSVC 编的同一程序 1.99 / 2.47 / 6.69 s；
+#     另编的带 oneMKL 后端的程序（rcwa_fields.cpp 加 STABLERCWA_WITH_MKL=1、链接 mkl_rt；测量时临时让请求带上
+#     "backend": "mkl"，界面没有接）2.02 / 2.25 / 3.49 s。
+# 也就是说 C++ 在 N = 289、625 时快 10 % 到 25 %，N = 169 时在 Mac 上反而慢 0.2 s：求解本身 C++ 快一倍，慢在起进程、写原始场文件
+# 再读回的固定开销。C++ 路径另有一个代价：成功的二维调用保留原始场文件（nx=1600、nz=1200 时 391 MB）。所以默认仍是 Python，
+# 想要的人在界面里选 C++。改默认的条件：在界面默认线程数下 N = 169、289、625 三档都不比 Python 慢（现在差 Mac 上 N = 169 那一档），
+# 或者界面接入 oneMKL 后端（Windows 上 N = 625 时快 2.2 倍）。这个开关只管二维，一维的路由与这个常量无关。
 DEFAULT_BACKEND_2D = "python"
 BACKENDS_2D = ("python", "cpp")
-NOTE_2D_PYTHON = "二维周期模型默认由 Python 求解器计算（环境变量 RCWA_2D_BACKEND=cpp 改用 C++）"
+NOTE_2D_PYTHON = "二维周期模型默认由 Python 求解器计算（界面的“二维求解”选 C++，或设环境变量 RCWA_2D_BACKEND=cpp，改用 C++）"
+NOTE_2D_PYTHON_CHOSEN = "二维周期模型按界面的选择由 Python 求解器计算"
 
 
 def backend_2d():
@@ -608,10 +617,22 @@ def backend_2d():
                                 + NOTE_2D_PYTHON)
 
 
-def _eligibility_2d(cfg):
-    """二维周期模型：RCWA_2D_BACKEND=cpp（默认不是，见 DEFAULT_BACKEND_2D），并且各向同性、解析 Fourier、N=(2M+1)(2My+1) ≤ 625 时可以交给 C++。
+def backend_2d_for(cfg):
+    """这个模型用哪个二维求解器：(取值, 说明, 是否由模型指定)。模型里写了 backend_2d（界面的“二维求解”选项，取值见 BACKENDS_2D）
+    时以它为准；没写时按 backend_2d()（环境变量与默认）。gui_models_2d.normalize_2d 已经检查过写了的值。"""
+    chosen = cfg.get("backend_2d") if isinstance(cfg, dict) else None
+    if chosen in BACKENDS_2D:
+        return chosen, "", True
+    choice, problem = backend_2d()
+    return choice, problem, False
 
-    开关先于下面的结构检查：默认（python）时一律不交给 C++，说明是 NOTE_2D_PYTHON 一句中性的话，不当作故障报告。
+
+def _eligibility_2d(cfg):
+    """二维周期模型：选了 C++（模型里的 backend_2d，没写时 RCWA_2D_BACKEND；默认不是，见 DEFAULT_BACKEND_2D），并且各向同性、
+    解析 Fourier、N=(2M+1)(2My+1) ≤ 625 时可以交给 C++。
+
+    开关先于下面的结构检查：选的是 Python 时一律不交给 C++，说明是一句中性的话（默认时 NOTE_2D_PYTHON，界面明确选了 Python 时
+    NOTE_2D_PYTHON_CHOSEN），不当作故障报告。
 
     从界面进来的二维模型一律先过 gui_models_2d.normalize_2d（gui_models.normalize），它在入口就拒绝：M、My 为负或 N>625、
     入射区吸收、单轴晶体、FFT 系数、背景材料覆盖、层类型不明，所以界面里的模型走到这里总是返回 (True, "")——
@@ -619,9 +640,9 @@ def _eligibility_2d(cfg):
     只有绕过 normalize_2d、直接传入未规范化模型的调用者（库用法、测试）才会碰到；保留它们是纵深防御，
     免得规范化的约束以后放宽时把不支持的模型悄悄交给 C++。
     """
-    choice, problem = backend_2d()
+    choice, problem, chosen = backend_2d_for(cfg)
     if choice != "cpp":
-        return False, problem or NOTE_2D_PYTHON
+        return False, problem or (NOTE_2D_PYTHON_CHOSEN if chosen else NOTE_2D_PYTHON)
     inc, st = cfg["incident"], cfg["structure"]
     try:
         M, My = int(inc["M"]), int(inc["My"])

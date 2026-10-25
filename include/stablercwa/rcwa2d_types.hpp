@@ -87,6 +87,12 @@ struct Options2D {
     bool diagnostics = false;
     bool parallel_layers = false;                      // 结构层的算子装配与本征分解用 parallel_for 分给线程池
     std::function<EigResult(const Matrix&)> custom_eig;   // 若设置则代替 eig()，约定同一维的 Options::custom_eig
+    // 若设置，稠密矩阵乘法、稠密线性求解（二维总是按列选主元的 LU）改由它们完成，约定同一维的 Options::custom_multiply、
+    // custom_solve。parallel_layers 时各结构层的组装（求 ⟦ε⟧⁻¹、P·Q 等）在线程池里同时调用它们，所以必须能被多个线程
+    // 同时调用。solve2d_with_fields 的那次求解同样走它们（之后的近场采样不再做稠密运算）。二维内置的乘法就是 a * b，
+    // 内置的求解与 stablercwa::solve(a, b) 逐位相同（右端是一个向量时与按向量的 solve 相同）。
+    std::function<Matrix(const Matrix&, const Matrix&)> custom_multiply;
+    std::function<Matrix(const Matrix&, const Matrix&)> custom_solve;
 };
 
 struct Timing2D { double total = 0, operators = 0, eig = 0, linear = 0, product = 0; };

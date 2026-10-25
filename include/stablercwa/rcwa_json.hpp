@@ -39,6 +39,12 @@
 //                   或者 {"jones": [Es, Ep]}             任意的入射 Jones 矢量（s 在前），每个分量是实数或 [实部, 虚部]
 //                 写了它，每个结果里多一段 polarized；不写时只给 Jones 矩阵和四个通道的效率。
 //   options       可以不写，里面各项也都可以不写；不写的取 rcwa::Options 的默认值：
+//       backend                 "builtin"（默认）：全用本库的运算；"mkl"：本征分解、稠密乘法、稠密线性求解都交给 oneMKL
+//                               （mkl/mkl_backend.hpp，做的是 mkl::use_mkl），只有编译时定义了 STABLERCWA_WITH_MKL 才能用
+//                               （见本说明末尾）。各层的折射率都是实数时打开 mkl::Settings::real_path（对称结构的层矩阵走
+//                               dgeev），有一层有吸收就一律走 zgeev。MKL 用 threads 个线程；多个入射点分给线程池、或
+//                               parallel_layers 把几个层分给线程池时，每次调用只用 1 个。"mkl" 时 eig 只能不写或写 "qr"，
+//                               linear 只能不写或写 "lu"，写了别的是请求错误
 //       eig                     "qr"（默认）或 "lr"：层矩阵的本征分解用哪种迭代
 //       linear                  "lu"（默认，按列选主元）、"lu_nopivot"（不选主元）、"qr"（Householder QR）
 //       homogeneous_fast_path   true（默认）/ false
@@ -88,6 +94,12 @@
 // （包含本文件之前定义 STABLERCWA_RCWA_JSON_CONICAL 为 0，可以在有那个头文件的情况下也不编入圆锥入射。）
 // 二维的头文件 rcwa2d.hpp 同样自动包含，找不到时 periodic2d 模式的请求得到一条说明原因的错误
 // （包含本文件之前定义 STABLERCWA_RCWA_JSON_2D 为 0，可以不编入二维）。
+// oneMKL 后端不会自动编入（它要链接 mkl_rt）：包含本文件之前定义 STABLERCWA_WITH_MKL 为 1（写 1，不要写 ON；CMake 的
+// stablercwa_mkl 目标会定义它），才包含 mkl/mkl_backend.hpp、接受 "backend": "mkl"；没有定义时这样的请求得到一条说明原因的错误。
+// 同一个程序里所有包含本文件的源文件，这三个宏的取值要一致（例如不要让一个静态库按 stablercwa 编、程序按 stablercwa_mkl 编），
+// 否则同名的内联函数有两种定义，用到哪一种取决于链接。
+// "backend": "mkl" 的结果与默认的只在舍入误差以内一致（实测效率差 1e-12 量级），不再是任何线程数下逐位相同；
+// 详见 mkl_backend.hpp。
 //
 // ====================================================================================================
 // 二维：mode = periodic2d（rcwa2d.hpp 的 solve2d；协议的完整规格见 gui/validation/field_reference_2d/PROTOCOL_2D.md）
@@ -116,7 +128,8 @@
 //     入射点        同一维 conical（points 数组，或者写在最外层的单点；phi_deg 不写取 0）。
 //     input         二维必须写（不写不取默认值，免得悄悄取 s 偏振）：{"psi_deg", "delta_deg"} 或 {"jones": [Es, Ep]}，
 //                   写法与取值同一维 conical；Jones 矢量不归一（psi/delta 写法给出的模为 1）。
-//     options       eig（"qr"（默认）或 "lr"；二维上 LR 常因本征残差检查而返回数值失败，见 rcwa2d_types.hpp）、
+//     options       backend（同一维；"mkl" 时 eig 只能不写或写 "qr"）、
+//                   eig（"qr"（默认）或 "lr"；二维上 LR 常因本征残差检查而返回数值失败，见 rcwa2d_types.hpp）、
 //                   factorization（"li"（默认）或 "laurent"）、homogeneous_fast_path、parallel_layers、diagnostics、threads，
 //                   后四项同一维。没有 linear：二维求解没有这个选项，写了就报错。
 //     不写 polarization、period（一维的写法，同时出现是请求错误）。
@@ -172,6 +185,13 @@
 #endif
 #if STABLERCWA_RCWA_JSON_2D
 #include "rcwa2d.hpp"
+#endif
+
+#if !defined(STABLERCWA_WITH_MKL)
+#define STABLERCWA_WITH_MKL 0
+#endif
+#if STABLERCWA_WITH_MKL
+#include "mkl/mkl_backend.hpp"
 #endif
 
 namespace stablercwa {
@@ -434,15 +454,56 @@ inline void read_points(const json::Value& root, Request& rq) {
     }
 }
 
+// 各层的折射率是否都是实数（没有吸收）。出射介质不进层矩阵，不看。
+inline bool layers_lossless(const Stack& stack) {
+    for (const Layer& layer : stack.layers) {
+        if (layer.homogeneous && layer.n.imag() != 0.0) return false;
+        for (const cplx& n : layer.n_values)
+            if (n.imag() != 0.0) return false;
+    }
+    return true;
+}
+
+// options.backend："builtin"（默认）或 "mkl"；返回是否用 MKL。编译时没有编入 MKL 后端时 "mkl" 是请求错误。
+inline bool read_backend(const json::Value& v) {
+    const json::Value* backend = v.find("backend");
+    if (!backend) return false;
+    const std::string name = text(*backend, "options.backend");
+    if (name == "builtin") return false;
+    if (name != "mkl") fail("options.backend", "只能是 \"builtin\"（默认）或 \"mkl\"");
+#if !STABLERCWA_WITH_MKL
+    fail("options.backend", "这个程序编译时没有编入 oneMKL 后端（STABLERCWA_WITH_MKL），不能用 \"mkl\"；请去掉这一项或写 \"builtin\"");
+#endif
+    return true;
+}
+
+// "backend": "mkl"：本征分解、稠密乘法、稠密线性求解都交给 oneMKL（mkl::use_mkl）。各层都无吸收（lossless）时打开
+// real_path，对称结构的层矩阵走 dgeev：弱到与舍入误差分不开的吸收光看层矩阵认不出来，所以由这里按请求里的折射率决定
+// （见 mkl_backend.hpp）。O 是 Options 或 Options2D。
+template <class O>
+inline void use_mkl_backend(O& options, bool lossless) {
+#if STABLERCWA_WITH_MKL
+    mkl::Settings settings;
+    settings.real_path = lossless;
+    mkl::use_mkl(options, settings);
+#else
+    (void)options;
+    (void)lossless;
+#endif
+}
+
 inline void read_options(const json::Value& v, Request& rq) {
     const std::string path = "options";
     need_object(v, path);
-    check_keys(v, path, {"eig", "linear", "homogeneous_fast_path", "parallel_layers", "diagnostics", "threads"});
+    check_keys(v, path, {"backend", "eig", "linear", "homogeneous_fast_path", "parallel_layers", "diagnostics", "threads"});
+    const bool mkl_backend = read_backend(v);
     if (const json::Value* method = v.find("eig")) {
         const std::string name = text(*method, "options.eig");
         if (name == "qr") rq.options.eig = EigMethod::QR;
         else if (name == "lr") rq.options.eig = EigMethod::LR;
         else fail("options.eig", "只能是 \"qr\" 或 \"lr\"");
+        if (mkl_backend && rq.options.eig != EigMethod::QR)
+            fail("options.eig", "backend 是 \"mkl\" 时本征分解由 MKL 做，eig 只能不写或写 \"qr\"");
     }
     if (const json::Value* solver = v.find("linear")) {
         const std::string name = text(*solver, "options.linear");
@@ -450,7 +511,10 @@ inline void read_options(const json::Value& v, Request& rq) {
         else if (name == "lu_nopivot") rq.options.linear = LinearSolver::LUNoPivot;
         else if (name == "qr") rq.options.linear = LinearSolver::QRHouseholder;
         else fail("options.linear", "只能是 \"lu\"、\"lu_nopivot\" 或 \"qr\"");
+        if (mkl_backend && rq.options.linear != LinearSolver::LUPartial)
+            fail("options.linear", "backend 是 \"mkl\" 时线性求解由 MKL 的按列选主元 LU 做，linear 只能不写或写 \"lu\"");
     }
+    if (mkl_backend) use_mkl_backend(rq.options, layers_lossless(rq.stack));   // stack 已经读过
     if (const json::Value* fast = v.find("homogeneous_fast_path"))
         rq.options.homogeneous_fast_path = truth(*fast, "options.homogeneous_fast_path");
     if (const json::Value* layers = v.find("parallel_layers"))
@@ -590,18 +654,33 @@ inline Stack2D read_stack_2d(const json::Value& v) {
     return stack;
 }
 
+// 二维：各结构层、均匀层的折射率是否都是实数。
+inline bool layers_lossless(const Stack2D& stack) {
+    for (const Layer2D& layer : stack.layers) {
+        if (layer.homogeneous && layer.n.imag() != 0.0) return false;
+        for (const XProfile2D& profile : layer.x_profiles)
+            for (const cplx& n : profile.n_values)
+                if (n.imag() != 0.0) return false;
+    }
+    return true;
+}
+
 inline void read_options_2d(const json::Value& v, Request& rq) {
     const std::string path = "options";
     need_object(v, path);
     if (v.contains("linear"))
         fail("options.linear", "二维不适用：二维求解没有 linear 选项（它是一维的线性求解器选项）");
-    check_keys(v, path, {"eig", "factorization", "homogeneous_fast_path", "parallel_layers", "diagnostics", "threads"});
+    check_keys(v, path, {"backend", "eig", "factorization", "homogeneous_fast_path", "parallel_layers", "diagnostics", "threads"});
+    const bool mkl_backend = read_backend(v);
     if (const json::Value* method = v.find("eig")) {
         const std::string name = text(*method, "options.eig");
         if (name == "qr") rq.options2d.eig = EigMethod::QR;
         else if (name == "lr") rq.options2d.eig = EigMethod::LR;
         else fail("options.eig", "只能是 \"qr\" 或 \"lr\"");
+        if (mkl_backend && rq.options2d.eig != EigMethod::QR)
+            fail("options.eig", "backend 是 \"mkl\" 时本征分解由 MKL 做，eig 只能不写或写 \"qr\"");
     }
+    if (mkl_backend) use_mkl_backend(rq.options2d, layers_lossless(rq.stack2d));   // stack2d 已经读过
     if (const json::Value* rule = v.find("factorization")) {
         const std::string name = text(*rule, "options.factorization");
         if (name == "li") rq.options2d.factorization = Factorization2D::Li;

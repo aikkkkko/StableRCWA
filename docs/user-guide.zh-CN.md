@@ -1,7 +1,7 @@
 # 使用说明
 
 这份说明写 StableRCWA 的接口约定和各部分的用法：一维 RCWA、圆锥入射、二维交叉光栅、六分量近场与相位、JSON 接口、图形界面、
-两种本征迭代和 GPU 后端。第一次用请先看[快速上手](quickstart.zh-CN.md)，测试与对照见[验证](validation.zh-CN.md)。
+两种本征迭代，以及可选的 oneMKL、GPU 后端。第一次用请先看[快速上手](quickstart.zh-CN.md)，测试与对照见[验证](validation.zh-CN.md)。
 
 StableRCWA 由一组纯源码的 C++17 数值模块组成：LU 分解、QR 分解、LR 与 QR 两种本征迭代，以及建立在它们之上的 RCWA：
 一维光栅（平面内入射的 TE/TM，以及圆锥入射的 Jones 矩阵）和二维交叉光栅（x、y 两个方向都有周期，入射方向与偏振任意）。
@@ -91,12 +91,13 @@ include/stablercwa/
     json.hpp          最小的 JSON 读写（只用标准库）
     rcwa_json.hpp     RCWA 的 JSON 入口：solve_json(请求) 返回应答（planar、conical、periodic2d 三种模式）
     stablercwa.hpp    核心与远场聚合；场上下文头文件单独包含
+    mkl/mkl_backend.hpp    可选的 oneMKL 后端：本征分解（zgeev / dgeev）、稠密乘法（zgemm）、线性求解（zgetrf），经三个钩子接进求解器
     gpu/cuda_backend.hpp   可选的 CUDA 后端（cuSOLVER / cuBLAS），单精度、双精度可切换
 examples/
     eig_minimal.cpp   最小示例：填一个矩阵，调用 eig()
     rcwa_demo.cpp     命令行的 RCWA 示例：换结构、换本征算法，看能量是否守恒
     conical_demo.cpp  命令行的圆锥入射示例：各传播级四个偏振通道的效率、通量幺正性
-    rcwa_json.cpp     效率/Jones 专用的 JSON 命令行程序
+    rcwa_json.cpp     效率/Jones 专用的 JSON 命令行程序（CMake 打开 STABLERCWA_WITH_MKL 时另编一个接受 "backend": "mkl" 的 rcwa_json_mkl）
     rcwa_fields.cpp   一次求解的效率/Jones 与六复场/相位命令行程序；JSON + NPY 二进制传输
     bench_*.cpp       CPU/GPU 基准程序
     structures.hpp    示例共用的结构定义；say.hpp 是带中文格式串的 printf 转发
@@ -127,7 +128,10 @@ rcwa::Result r = rcwa::solve(stack, 1.053, 66.36, 40, rcwa::Polarization::TE);
   Littrow 入射时返回入射方向的是 `m = +1` 级。齿形左右不对称的光栅要按这个方向填 `edges`。
 - 吸收介质写成 `n + i·k`，`k > 0`。入射介质必须是实折射率。
 - `rcwa::Options` 里可以换本征算法（`eig`）、线性求解方法（`linear`）、关闭均匀层解析解（`homogeneous_fast_path = false`）、
-  打开层间并行（`parallel_layers`）、换成自己的本征求解器（`custom_eig`，例如 GPU 后端）。
+  打开层间并行（`parallel_layers`）、换成自己的本征求解器（`custom_eig`，例如 oneMKL 或 GPU 后端）。
+  稠密矩阵乘法、按列选主元的稠密线性求解也可以交给别的库（`custom_multiply`、`custom_solve`）：钩子要返回大小正确的矩阵，
+  矩阵奇异时抛 `std::runtime_error`（当作数值失败）；`linear` 不是默认的 `LUPartial` 时不用 `custom_solve`。
+  不设这两个钩子时，结果与以前逐位相同。
 - 求解失败（方程奇异、出现非有限数、本征迭代不收敛）时不抛异常，返回的效率全部是 NaN，`eig_info` 记下本征求解的返回码。
 - 平面有限层内数值上精确的 `q = 0`（传播常数严格为零）使用辅助模式基和线性场对应的散射块，不因此失败，也不修改物理本征值。
   例如 nI = nII = 2、θ = 30°、λ = 1 µm，中间一层 n = 1、厚 1/(π√3) µm 的膜（层内 q = 0）：解析解是 TE 的 `R = T = 1/2`、
@@ -268,7 +272,8 @@ int main() {
   也可以直接写 `rcwa::Jones2D{Es, Ep}`。Jones 矢量不在求解里归一（`jones_from_angles_2d` 给出的模为 1）。
 - 入射介质必须是实折射率；各层和出射介质可以有吸收（`n + i·k`，`k > 0`）。
 - `rcwa::Options2D`：Fourier 因式分解默认是 Li 的嵌套逆规则（`Factorization2D::Li`），`Laurent` 收敛差，只作对照；
-  `parallel_layers` 把各结构层分给线程池；`custom_eig` 换成自己的本征求解器。本征分解用默认的 QR：LR 在二维的 2N 阶矩阵上不可靠，
+  `parallel_layers` 把各结构层分给线程池；`custom_eig` 换成自己的本征求解器，`custom_multiply`、`custom_solve` 换成自己的稠密乘法与
+  线性求解（约定同一维；`parallel_layers` 时它们在线程池里被同时调用）。本征分解用默认的 QR：LR 在二维的 2N 阶矩阵上不可靠，
   选了它时 `solve2d` 总是检查本征残差，超过 1e-9 就返回数值失败，不会悄悄给出错误的结果。
 - 求解失败时不抛异常：`r.status` 是 `NumericalFailure` 或 `RayleighAnomaly`，`r.message` 写明原因，结果数组填 NaN。
   入射区、出射区或均匀层里某一级的 kz 恰好为 0 时报 `RayleighAnomaly`（一维允许入射区掠射，二维不允许）。
@@ -377,6 +382,8 @@ c++ -std=c++17 -O2 -I include -I examples examples/rcwa_json.cpp -o rcwa_json
 - 请求有错时应答是 `{"ok": false, "error": 说明, "where": 出错的字段}`，程序返回 1；不认识的键也算错，免得拼错了悄悄被忽略。
   求解本身数值失败不算请求出错：`ok` 仍为真，相应的数写成 `null`。
 - 请求和应答的完整格式写在 `rcwa_json.hpp` 开头。JSON 的读写在 `json.hpp` 里，同样只用标准库，数与文字的转换在三套工具链上逐位一致。
+- `options.eig` 选层矩阵的本征分解：`"qr"`（默认）或 `"lr"`。程序编入了 oneMKL 后端时，`options.backend` 可以写 `"mkl"`
+  （默认 `"builtin"`），本征分解、乘法、线性求解都交给 MKL，见“oneMKL 后端”一节。
 - 不需要圆锥入射或二维时，可以在包含 `rcwa_json.hpp` 之前把 `STABLERCWA_RCWA_JSON_CONICAL` 或 `STABLERCWA_RCWA_JSON_2D` 定义为 0，
   不编入对应的求解器；请求这两种模式时得到说明原因的错误，平面入射照常求解。
 
@@ -494,6 +501,103 @@ python -m unittest validation.test_cpp_fields_backend validation.test_cpp_backen
 矩阵元整体的量级在 1e-150 到 1e150 之间时，不会因为上溢或下溢出错。由于不做平衡，同一个矩阵里元素大小悬殊时本征值可能失准，
 而返回码仍是 0、残差仍然很小。例如 `[[2, 1e20], [1e-20, 3]]` 算出的本征值是 2 和 3，正确值是 1.382 和 3.618。这类矩阵要先做对角相似缩放再调用。
 
+## oneMKL 后端（可选）
+
+`include/stablercwa/mkl/mkl_backend.hpp` 把 RCWA 的本征分解、稠密矩阵乘法、稠密线性求解交给 Intel oneMKL。求解器不用改，
+接在三个钩子 `custom_eig`、`custom_multiply`、`custom_solve` 上，`mkl::use_mkl` 一次设好：
+
+```cpp
+#include "stablercwa/rcwa1d.hpp"
+#include "stablercwa/mkl/mkl_backend.hpp"
+using namespace stablercwa;
+
+set_num_threads(8);                      // StableRCWA 其余部分用 8 个线程，MKL 也用 8 个
+rcwa::Options opt;                       // 圆锥入射同样；二维是 rcwa::Options2D
+mkl::Settings s;
+s.real_path = true;                      // 只在各层都无吸收（折射率全是实数）时打开，见下面“实矩阵走 dgeev”
+mkl::use_mkl(opt, s);                    // 有吸收时用默认设定：mkl::use_mkl(opt)
+rcwa::Result r = rcwa::solve(stack, 1.053, 66.36, 150, rcwa::Polarization::TE, opt);
+```
+
+也可以只换其中一样：`opt.custom_eig = mkl::eig_hook(s)`、`opt.custom_multiply = mkl::multiply_hook()`、`opt.custom_solve = mkl::solve_hook()`。
+JSON 请求里写 `"options": {"backend": "mkl", "threads": 8}`，三样都交给 MKL，`real_path` 由程序按请求里的折射率自动决定。
+`"backend": "mkl"` 时 `eig` 只能不写或写 `"qr"`，`linear` 只能不写或写 `"lu"`，写了别的是请求错误。
+
+- **依赖：** oneMKL 2025.0.1 或更新，链接单动态库 `mkl_rt`，不需要 MKL 的头文件。Windows 上先运行 `standalone/install_mkl.bat`，
+  它从 PyPI 下载 oneMKL 2026.2.0，核对 SHA-256，把 DLL 放进 `standalone/mkl/bin`；导入库是 `standalone/mkl/lib/mkl_rt.lib`。
+  `stablercwa.hpp` 不包含这个头文件，不用 MKL 的程序不受影响。
+- **CMake：** 加 `-DSTABLERCWA_WITH_MKL=ON`，编出测试 `test_rcwa_mkl`、测速 `bench_mkl_rcwa` 和接受 `"backend": "mkl"` 的命令行程序
+  `rcwa_json_mkl`，编完把 MKL 的 DLL 拷到程序旁边。自己的程序链接目标 `stablercwa_mkl` 即可，它同时定义 `STABLERCWA_WITH_MKL=1`。
+  不用 CMake 时链接 `mkl_rt.lib`；要用 JSON 入口的 `"backend": "mkl"`，编译时还要定义 `STABLERCWA_WITH_MKL=1`（写 1，不要写 `ON`）。
+  同一个程序里包含 `rcwa_json.hpp` 的源文件要么都定义它，要么都不定义。其他系统上 CMake 用 `find_library` 找 `mkl_rt`，只在 Windows 上测过。
+  没有编入 MKL 的程序收到 `"backend": "mkl"` 时，应答是 `ok: false`，并说明原因。
+- **乘法与线性求解：** 乘法用 `zgemm`。内置的乘法会跳过 B 里成组的零系数（B 是对角阵时只要 O(n²)），`zgemm` 不跳，
+  所以 B 里非零的组不超过 1/8 时交回内置的乘法。线性求解用 `zgetrf` 加 `zgetrs`，与内置的一样是按列选主元的 LU，
+  也只在主元恰好为零时报数值失败。一维的 `linear` 不是默认的 `"lu"` 时，线性求解仍用内置的。
+- **实矩阵走 dgeev（`real_path`，默认关闭）：** 结构无吸收、并且相对原点或单元中心对称时，层矩阵在数学上是实的，
+  算出来的虚部只是舍入误差。打开 `mkl::Settings::real_path` 后，后端这时丢掉虚部，改用实数的 `dgeev`，本征分解比 `zgeev`
+  再快 2.2 到 2.5 倍；精确的层矩阵是实的，取实部只会离它更近。
+  - 判据：每个元的虚部都不超过它所在行、列量级的 1.1e-13 倍（行、列的量级取各元 max(|实部|, |虚部|) 的最大值，两者取几何平均）。
+    按行、列比而不按整个矩阵的范数比，是因为高阶时对角元 kx² 很大，会把吸收带来的虚部“淹没”。
+  - 实测对称、无吸收的结构：一维 TE、二维远在阈值以下；TM 随阶数、折射率差增大，n = 4 时 M = 800 到阈值的 55 %，M = 1600 到 84 %。
+    超过阈值的照样走 `zgeev`，只是慢一些，例如 n = 5、M = 1600 的 TM，ε = −20 的无吸收金属 M ≥ 800 时。
+  - 为什么默认关闭：k ≈ 1e-13（TE 约 4e-14）以下的吸收在层矩阵里与舍入误差分不开，光看矩阵认不出来；而在高 Q 共振附近
+    （例如对称保护的连续谱束缚态），这么弱的吸收对效率的影响远大于舍入误差。实测一个 Q 很高的对称光栅，k = 1e-13 的 TM 吸收掉 4.5e-6，
+    当成无吸收以后效率差 3.5e-6，还算出 −6.7e-7 的“增益”。所以只在确认各层折射率都是实数时打开。JSON 入口按请求里的折射率自动决定：
+    有一层的折射率带虚部（哪怕 1e-15）就不打开。打开以后，吸收到 k = 1e-12 以上或不对称的层矩阵仍由判据挑出来走 `zgeev`。
+  - 对称的结构要写成对称的才能用上：齿放在单元中心（`"edges": [0, a, Λ − a, Λ]`）或原点（`"edges": [−w/2, w/2, Λ − w/2]`）都行，
+    `"edges": [0, w, Λ]` 这样齿靠在一边的写法不对称。二维同理：方柱放在单元中心。
+- **线程：** MKL 用 `set_num_threads()` 设的线程数，JSON 里就是 `options.threads`，与 StableRCWA 其余部分一样多；
+  没设过就是 1 个。在 `parallel_layers`、`sweep` 等并行区里，每次调用只给 MKL 1 个线程，免得线程池的每个线程再各开一组。
+  要别的线程数，设 `mkl::Settings::threads`。MKL 自己的默认值（物理核数）和环境变量 `MKL_NUM_THREADS` 在这里不起作用。
+  MKL 的 OpenMP 线程在每次多线程调用之后默认还会空转约 200 毫秒（`KMP_BLOCKTIME`）；`set_num_threads()` 接近核数时，
+  可以设环境变量 `KMP_BLOCKTIME=0`，免得它们与线程池抢核（没有实测）。
+- **结果：** 与内置的运算只在舍入误差以内一致，不再逐位相同。MKL 的末位会随线程数、处理器变；要可重复，设环境变量 `MKL_CBWR=AVX2` 并固定线程数。
+  实测见下面一条。
+- **验证**（`test_rcwa_mkl`，Windows、MSVC、MKL 2026.2.0，1644 项检查全部通过）：
+  - 一维、圆锥入射、二维、近场、`parallel_layers` 与 `sweep` 各跑两遍：只换本征分解，三样都换。与 QR 的效率差不超过 4.3e-12，
+    近场差不超过 1.44e-12；README 那张表的 M = 150 算例，两边都是 98.586942 %；
+  - 均匀层也走稠密路径时会出现重合的本征值：60 个随机结构在正入射、Littrow 入射下共 234 次求解，与快速路径差不超过 6.7e-13；
+  - 二维 24 个冻结的 Python 参照全部在自带的容差内（最大差 2.0e-13）；打开 `real_path` 时 19 个层矩阵里 13 个走了 `dgeev`；
+  - 乘法、求解本身：与内置的乘法差 1e-16 量级（相对 max|A|·max|B|·k），求解的后向误差 5e-16，零主元报失败，稀疏的 B 交回内置后逐位相同；
+  - 奇异与 Rayleigh 异常点：本征向量全为零、出射介质恰好掠射又紧挨光栅层（界面方程组奇异），都与内置的 LU 一样报数值失败；
+    有限膜恰好截止、入射介质一侧掠射照常求解（与内置的差 2e-15）；扫描里只有异常点那一个是 NaN；
+  - JSON 的 planar、conical、periodic2d 用 `"backend": "mkl"` 时，应答与 `"builtin"` 的结构相同，数值差不超过 6.8e-13；
+  - 对称结构上与 QR 最大的差是 2.4e-11（`zgeev` 是 4.6e-12），出在病态的高折射率差 TM（n = 3.5、M = 150、正入射）。
+    这一例对层矩阵的舍入误差很敏感：只丢掉舍入虚部，QR 自己的结果就变 1.2e-11；阶数加到 300 时 QR 与 `zgeev` 也差 7e-11。
+- **用时**（AMD Ryzen 9 5950X，16 核，Windows，MSVC；StableRCWA 与 MKL 都用 8 个线程；单位秒；`bench_mkl_rcwa`）：
+
+| 算例 | 层矩阵 | M | 阶数 | 内置 | 只换本征分解 | 三样都换（`use_mkl`） | 加速 |
+|---|---|---:|---:|---:|---:|---:|---:|
+| 一维，四脊 + 20 层膜，TE | 复，`zgeev` | 200 | 401 | 0.364 | 0.296 | 0.170 | 2.1× |
+| | | 400 | 801 | 2.18 | 1.83 | 0.94 | 2.3× |
+| | | 800 | 1601 | 15.5 | 12.2 | 5.7 | 2.7× |
+| | | 1600 | 3201 | 143 | 99 | 45 | 3.2× |
+| 一维，对称的五脊 + 20 层膜，TE | 实，`dgeev` | 200 | 401 | 0.373 | 0.243 | 0.093 | 4.0× |
+| | | 400 | 801 | 2.20 | 1.47 | 0.61 | 3.6× |
+| | | 800 | 1601 | 15.9 | 10.4 | 3.9 | 4.1× |
+| | | 1600 | 3201 | 141 | 85 | 31 | 4.6× |
+| 二维，居中方柱 `pillar_sq` | 实，`dgeev` | 6 | 338 | 0.210 | 0.085 | 0.060 | 3.5× |
+| | | 8 | 578 | 0.735 | 0.364 | 0.234 | 3.1× |
+| | | 10 | 882 | 2.19 | 1.00 | 0.54 | 4.1× |
+| | | 12 | 1250 | 5.66 | 2.60 | 1.26 | 4.5× |
+| | | 16 | 2178 | 31.1 | 12.3 | 5.3 | 5.9× |
+| 二维，偏心方柱 `pillar_ecc` | 复，`zgeev` | 6 | 338 | 0.185 | 0.130 | 0.102 | 1.8× |
+| | | 8 | 578 | 0.664 | 0.539 | 0.407 | 1.6× |
+| | | 10 | 882 | 2.00 | 1.45 | 0.97 | 2.1× |
+| | | 12 | 1250 | 5.21 | 3.50 | 2.16 | 2.4× |
+| | | 16 | 2178 | 28.2 | 16.9 | 9.9 | 2.9× |
+
+<sub>MKL 2026.2.0。阶数 882 以下取两次里最快的一次，更大的只跑一次。三样都换与内置的效率差不超过 6.4e-12。
+MKL 两栏都打开了 `real_path`（四个算例都无吸收）。重跑：`bench_mkl_rcwa --threads 8 --orders 200,400,800,1600 --orders2d 6,8,10,12,16`；
+程序还分别列出本征分解、线性求解、乘法各自的用时。</sub>
+
+- **三样都换以后：** 线性求解快约 3 倍，乘法快约 5 倍，本征分解又成了大头：一维复矩阵 M = 1600 时，45 秒里本征分解 23 秒、
+  线性求解 13 秒、乘法 7 秒。
+- **dgeev 比 zgeev 快：** 同一个实矩阵，`dgeev` 比当作复矩阵的 `zgeev` 快 2.2 到 2.5 倍（阶数 338 以上；`--sweep` 分别列出两条路的用时）。
+- **MKL 线程数**（只算本征分解，`--sweep`）：`zgeev` 从 8 个线程加到 16 个，3200 阶时只再快 12 %，1000 阶以下差不多或更慢；
+  `dgeev` 过了 8 个线程不再变快，900 阶以下 1 个线程就与 8 个差不多。所以默认用 `set_num_threads()` 的线程数，不用 MKL 的物理核数。
+
 ## GPU 后端（可选）
 
 `include/stablercwa/gpu/cuda_backend.hpp` 把本征分解、线性求解、矩阵乘法转交给 CUDA Toolkit 自带的 cuSOLVER / cuBLAS。
@@ -512,6 +616,6 @@ opt.custom_eig = [&](const Matrix& a) { return gpu::eig(ctx, a); };
 ```
 
 同一个 `Context` 不能被两个线程同时使用。线程数大于 1 时，设了 `custom_eig` 的选项不要打开 `parallel_layers`，也不要传给 `sweep()`。
-RCWA 里能这样替换的只有本征分解；`gpu::solve` 和 `gpu::multiply` 供单独调用。
+GPU 后端目前只接在 `custom_eig` 上；`gpu::solve` 和 `gpu::multiply` 没有接到 `custom_solve`、`custom_multiply`，供单独调用。
 
 单精度只用来估计吞吐量，残差在 1e-6 量级，不能当作正式结果。

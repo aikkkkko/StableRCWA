@@ -122,6 +122,18 @@ struct Options {
     // 若设置，层矩阵的本征分解改由它完成（例如 GPU 后端）；返回值的约定与 eig() 相同（本征向量按 2-范数归一）。
     // 与 parallel_layers 或 sweep() 同用时，它必须能被多个线程同时调用。
     std::function<EigResult(const Matrix&)> custom_eig;
+    // 若设置，稠密矩阵乘法 C = A·B 改由它完成（例如 oneMKL 后端）。要返回 A.rows() × B.cols() 的矩阵，大小不对时
+    // solve() 抛 std::invalid_argument。内置的乘法会跳过 B 里成组的零系数（B 是对角阵时只要 O(n²)），钩子要自己照顾
+    // 这种情形，例如交回 a * b（matrix.hpp 的乘法：算法与内置的相同，也跳过零系数，但余下那一列的加法次序不同，
+    // 末位可能差一点）。
+    std::function<Matrix(const Matrix&, const Matrix&)> custom_multiply;
+    // 若设置，并且 linear 是 LUPartial（默认），稠密线性方程组 A·X = B 改由它解（按列选主元）。要返回 A.cols() × B.cols()
+    // 的矩阵，大小不对时 solve() 抛 std::invalid_argument；A 奇异时它应当抛 std::runtime_error，solve() 当作数值失败，
+    // 与内置 LU 遇到零主元相同。linear 是 LUNoPivot、QRHouseholder 时不用它；近场快照要保留分解的那一次求解
+    // （TM 的 ⟦ε⟧）也仍用内置 LU。stablercwa::solve(a, b)（lu.hpp）与内置的做法逐位相同。
+    // 两个钩子都在调用 solve() 的线程里用（parallel_layers 只把本征分解分给线程池）；与 sweep()、sweep_conical() 同用时，
+    // 它们必须能被多个线程同时调用。
+    std::function<Matrix(const Matrix&, const Matrix&)> custom_solve;
 };
 
 struct Point { double wavelength = 1.0; double theta_deg = 0.0; };   // 扫描里的一个点
@@ -166,6 +178,9 @@ struct Work {
     Timing timing;
     int n_solve = 0;
     double max_backward_error = 0.0;
+    // Options::custom_multiply、custom_solve（指向调用方的 Options；空指针或空的函数表示用内置的运算）
+    const std::function<Matrix(const Matrix&, const Matrix&)>* multiply_hook = nullptr;
+    const std::function<Matrix(const Matrix&, const Matrix&)>* solve_hook = nullptr;
 };
 
 // ------------------------------------------------------------------ 参数检查
@@ -228,13 +243,17 @@ struct LinearFactors {
     QR qr;
 };
 
-// 解 A X = B，方法由 work.linear 指定。方程组奇异（零主元）时抛 NumericalFailure。
+// 解 A X = B，方法由 work.linear 指定；是 LUPartial 并且设了 custom_solve 时交给它（要保留分解时除外）。
+// 方程组奇异（零主元，或钩子抛 std::runtime_error）时抛 NumericalFailure。
 inline Matrix linear_solve(const Matrix& a, const Matrix& b, Work& work, LinearFactors* retained = nullptr) {
     ++work.n_solve;
     const auto t0 = Clock::now();
+    const bool hooked = !retained && work.linear == LinearSolver::LUPartial && work.solve_hook && *work.solve_hook;
     Matrix x;
     try {
-        if (retained) {
+        if (hooked) {
+            x = (*work.solve_hook)(a, b);
+        } else if (retained) {
             retained->method = work.linear;
             if (work.linear == LinearSolver::QRHouseholder) {
                 retained->qr = qr_factor(a);
@@ -255,6 +274,8 @@ inline Matrix linear_solve(const Matrix& a, const Matrix& b, Work& work, LinearF
         throw NumericalFailure{};
     }
     work.timing.linear += seconds_since(t0);
+    if (hooked && (x.rows() != a.cols() || x.cols() != b.cols()))
+        throw std::invalid_argument("rcwa: custom_solve returned a matrix of the wrong size");
     if (work.diagnostics) work.max_backward_error = max_keep_nan(work.max_backward_error, solve_backward_error(a, x, b));
     return x;
 }
@@ -303,8 +324,16 @@ inline void add_columns4(cplx* c_, const cplx* a0_, const cplx* a1_, const cplx*
 // C = A·B（计时）。稠密乘法是求解里除本征分解之外最花时间的运算，所以单独写了内核：
 // C 的每一列是 A 的各列的线性组合，四列一组累加；B 里整组为零的系数直接跳过（B 是对角阵时只剩 O(n²)）。
 // 列与列互不相干，矩阵够大时按列并行；每个元素上各项相加的次序是固定的，结果与线程数无关。
+// 设了 custom_multiply 时交给它。
 inline Matrix multiply(const Matrix& a, const Matrix& b, Work& work) {
     const auto t0 = Clock::now();
+    if (work.multiply_hook && *work.multiply_hook) {
+        Matrix c = (*work.multiply_hook)(a, b);
+        work.timing.product += seconds_since(t0);
+        if (c.rows() != a.rows() || c.cols() != b.cols())
+            throw std::invalid_argument("rcwa: custom_multiply returned a matrix of the wrong size");
+        return c;
+    }
     const int m = a.rows(), n = b.cols(), p = a.cols();
     Matrix c(m, n);
     const auto block = [&](int lo, int hi) {
@@ -816,6 +845,7 @@ inline void fill_nan(Result& result, int n) {
 //   gpu/cuda_backend.hpp 的单精度模式 Precision::Single，全程 float 运算）：本征对残差 7e-7 ~ 2e-6，
 //   各级效率与双精度结果相差 2e-7 ~ 5e-5，|R + T − 1| 最大 4e-5。
 // options.linear：所有稠密线性求解用的方法。
+// options.custom_multiply / custom_solve：稠密乘法、按列选主元的稠密线性求解改由它们完成（约定见 Options）。
 // options.parallel_layers：各层的本征分解互不相干，打开后用 parallel_for 分给线程池，结果与串行逐位相同。
 //
 // 本函数可重入，可以被多个线程同时调用；结果与 set_num_threads 设定的线程数无关（逐位相同）。
@@ -848,6 +878,8 @@ inline Result solve_impl(const Stack& stack, double wavelength, double theta_deg
     dt::Work work;
     work.linear = options.linear;
     work.diagnostics = options.diagnostics;
+    work.multiply_hook = &options.custom_multiply;
+    work.solve_hook = &options.custom_solve;
     if (fields) {
         *fields = PlanarFieldCapture{};
         fields->materials.resize(static_cast<std::size_t>(layer_count));

@@ -171,7 +171,8 @@ def make_handler(state):
                     return self.send_data(html.encode(),mime="text/html; charset=utf-8")
                 if path in ("/app.js","/results.js","/style.css","/geometry2d.js","/geometry2d.css","/models2d.js","/adaptive-pml.js","/adaptive-pml.css"):
                     p=ASSETS/path.lstrip("/");return self.send_data(p.read_bytes(),mime="text/javascript" if p.suffix==".js" else "text/css")
-                if path=="/api/bootstrap":return self.send_data({"presets":PRESETS,"config":state.initial,"history":state.history()})
+                if path=="/api/bootstrap":return self.send_data({"presets":PRESETS,"config":state.initial,"history":state.history(),
+                                                                 "backend_2d_default":cpp_backend.common.backend_2d()[0]})
                 if path=="/api/new_model":return self.send_data(new_custom_model())
                 if path=="/api/history":return self.send_data(state.history())
                 if path.startswith("/api/preset/"):return self.send_data(preset(path.split("/")[-1]))

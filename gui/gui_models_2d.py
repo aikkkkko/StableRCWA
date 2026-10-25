@@ -60,6 +60,14 @@ def normalize_2d(cfg):
     inc, st, sam = cfg.get("incident"), cfg.get("structure"), cfg.get("sampling")
     if not all(isinstance(v, dict) for v in (inc, st, sam)):
         raise ValueError("模型参数格式不完整")
+    # 可选：这个模型用哪个二维求解器（界面的“二维求解”选项）。不写时由环境变量 RCWA_2D_BACKEND 与默认决定（cpp_backend.backend_2d_for）。
+    if cfg.get("backend_2d") is None:
+        cfg.pop("backend_2d", None)
+    else:
+        choice = str(cfg["backend_2d"]).strip().lower()
+        if choice not in ("python", "cpp"):
+            raise ValueError("二维求解应为 python 或 cpp")
+        cfg["backend_2d"] = choice
     inc["wavelength"] = _number(inc.get("wavelength"), "波长", 1e-9, 1e6)
     inc["angle_deg"] = _number(inc.get("angle_deg"), "入射角", -89.9, 89.9)
     inc["phi_deg"] = _number(inc.get("phi_deg", 0.), "方位角", -360., 360.)

@@ -1169,6 +1169,12 @@ static void test_request_errors() {
         {Part::Options, "\"threads\": 1", "\"thread\": 1", "options.thread"},
         {Part::Options, "\"qr\"", "\"QR\"", "options.eig"},
         {Part::Options, "\"qr\"", "1", "options.eig"},
+        {Part::Options, "\"qr\"", "\"mkl\"", "options.eig"},                 // MKL 用 backend 选，不是 eig
+        {Part::Options, "\"threads\": 1", "\"backend\": \"gpu\"", "options.backend"},
+        {Part::Options, "\"threads\": 1", "\"backend\": 1", "options.backend"},
+#if !STABLERCWA_WITH_MKL
+        {Part::Options, "\"threads\": 1", "\"backend\": \"mkl\"", "options.backend"},   // 没有编入 oneMKL 后端
+#endif
         {Part::Options, "\"threads\": 1", "\"linear\": \"cholesky\"", "options.linear"},
         {Part::Options, "\"threads\": 1", "\"linear\": 2", "options.linear"},
         {Part::Options, "\"threads\": 1", "\"homogeneous_fast_path\": 1", "options.homogeneous_fast_path"},
@@ -1181,6 +1187,19 @@ static void test_request_errors() {
         {Part::Options, "\"threads\": 1", "\"threads\": \"4\"", "options.threads"},
     };
     run_bad_requests(base, cases, __FILE__, __LINE__);
+
+    // "backend": "builtin" 与不写相同（去掉计时后应答逐字相同）
+    {
+        const auto without_timing = [](std::string text) {
+            for (std::size_t at = text.find("\"timing\""); at != std::string::npos; at = text.find("\"timing\"", at))
+                text.erase(at, text.find('}', at) + 1 - at);
+            return text;
+        };
+        Parts builtin;
+        builtin.options = "\"options\": {\"eig\": \"qr\", \"threads\": 1, \"backend\": \"builtin\"}";
+        const rcwa::JsonReply a = rcwa::solve_json_reply(base.text()), b = rcwa::solve_json_reply(builtin.text());
+        CHECK(a.ok && b.ok && without_timing(a.text) == without_timing(b.text));
+    }
 
     // 请求不是合法的 JSON，或者最外层不是对象：where 是空的，error 里有位置
     CHECK(rejected("", "", "JSON"));
