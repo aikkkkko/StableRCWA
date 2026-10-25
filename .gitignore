@@ -29,3 +29,8 @@ CMakeCache.txt
 .env.*.local
 *.pem
 *.key
+
+# standalone/install_mkl.bat 下载的 oneMKL 运行库和许可证（每台机器自己下载，不进版本库）；导入库 mkl_rt.lib 要进
+/standalone/mkl/bin/
+/standalone/mkl/licenses/
+!/standalone/mkl/lib/mkl_rt.lib

@@ -95,3 +95,28 @@ endif()
   set_tests_properties(rcwa_fields_no_2d_rejects_periodic2d PROPERTIES
                        PASS_REGULAR_EXPRESSION "\"ok\": false, \"error\": \"[^\"]*rcwa2d\\.hpp[^\"]*\", \"where\": \"mode\"")
 endif()
+
+# standalone/ 里 oneMKL 版本征分解（MatrixEigenValueAndEigenVector_MKL.cpp）的测试。要有 oneMKL 2025.0.1 或更新，
+# 所以默认不编（CI 里也不编）。Windows + MSVC：先运行 standalone/install_mkl.bat 下载运行库，然后
+#   cmake -S . -B build -DSTABLERCWA_BUILD_STANDALONE_MKL=ON
+#   cmake --build build --config Release --target test_standalone_mkl
+# 链接的导入库默认是 standalone/mkl/lib/mkl_rt.lib（对应 oneMKL 2026 及以后的 mkl_rt.3.dll）；别的 MKL 用
+# -DSTABLERCWA_MKL_RT_LIB=<导入库或共享库的路径> 指定。Windows 上有 standalone/mkl/bin 时，编完会把里面的 DLL 拷到
+# 测试程序旁边；没有时运行库要在 PATH 里。
+option(STABLERCWA_BUILD_STANDALONE_MKL "编译 standalone/ 里 oneMKL 版本征分解的测试（需要 oneMKL 2025.0.1 或更新）" OFF)
+if(STABLERCWA_BUILD_STANDALONE_MKL)
+  set(STABLERCWA_MKL_RT_LIB "${CMAKE_CURRENT_SOURCE_DIR}/standalone/mkl/lib/mkl_rt.lib" CACHE FILEPATH
+      "oneMKL 单动态库 mkl_rt 的导入库（或共享库）")
+  if(NOT EXISTS "${STABLERCWA_MKL_RT_LIB}")
+    message(FATAL_ERROR "STABLERCWA_MKL_RT_LIB 指向的文件不存在：${STABLERCWA_MKL_RT_LIB}")
+  endif()
+  enable_testing()
+  add_executable(test_standalone_mkl standalone/tests/test_standalone_mkl.cpp)
+  target_link_libraries(test_standalone_mkl PRIVATE stablercwa "${STABLERCWA_MKL_RT_LIB}")
+  add_test(NAME test_standalone_mkl COMMAND test_standalone_mkl)
+  if(WIN32 AND IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/standalone/mkl/bin")   # 运行库也可以在 PATH 里
+    add_custom_command(TARGET test_standalone_mkl POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/standalone/mkl/bin"
+                               "$<TARGET_FILE_DIR:test_standalone_mkl>")
+  endif()
+endif()

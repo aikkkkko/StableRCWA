@@ -200,6 +200,7 @@ and says so on the results page.
 | Magnetic media (μ ≠ 1) | – | experimental, not in the GUI |
 | General 6×6 constitutive tensors | – | 1-D, experimental, not in the GUI |
 | GPU eigen solver (CUDA cuSOLVER) | optional, experimental | – |
+| oneMKL eigen solver as a single-file drop-in for DLL projects (Windows x64) | optional, [`standalone/`](standalone/README.md) | – |
 
 <sub>¹ Inherited from the author's earlier Python package; their validation reports will be added to `docs/`.</sub>
 
@@ -222,6 +223,25 @@ Limitations:
 - You must check convergence in `M` yourself. 2-D converges more slowly than 1-D.
 - The incidence medium must be lossless. In conical incidence the exit medium must be lossless too.
 - Multi-threaded eigen solves are verified bitwise identical to single-threaded ones only with FMA contraction off (`-ffp-contract=off`).
+
+## Optional: oneMKL eigensolver drop-in for DLL projects
+
+[`standalone/`](standalone/README.md) holds `MatrixEigenValueAndEigenVector_MKL.cpp`, a single source file for C++ DLL
+projects on Windows x64. It exports `MatrixEigenValueAndEigenVector` for real and for complex matrices, returns all
+eigenvalues and right eigenvectors sorted by real part, and computes them with Intel oneMKL's LAPACK (`dgeev` for real
+matrices, `zgeev` for complex ones). It is separate from the header-only library, which still has no dependencies.
+
+- **Faster.** On a 16-core AMD Ryzen 9 5950X it is 1.5 to 5.5 times faster than `eig_qr` with 8 threads for complex
+  matrices and 3.1 to 12.4 times faster for real ones (n = 300 to 4000). At n = 4000 it takes 36 s for a complex matrix
+  and 16 s for a real one, against 199 s.
+- **Needs oneMKL 2025.0.1 or newer.** On AMD processors under Windows, `dgeev` in oneMKL 2024.2.2 and 2025.0.0 writes
+  past its workspace and corrupts memory. The file checks the MKL version at run time and does not call `dgeev` on those
+  builds.
+- **One-click runtime.** `standalone/install_mkl.bat` downloads oneMKL 2026.2.0 from PyPI, checks the SHA-256 digests
+  and puts the DLLs in `standalone/mkl/bin`. Nothing is installed system-wide.
+
+The Visual Studio setup, the conventions, the full timing table and the test are in
+[standalone/README.md](standalone/README.md).
 
 ## Validation
 
