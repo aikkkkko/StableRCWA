@@ -657,6 +657,7 @@ inline void fill_nan(ConicalResult& result, int orders) {
 //
 // options 就是 rcwa::solve 用的那个，各字段的含义不变：
 //   eig / custom_eig：每个需要本征分解的层做两次 N 阶本征分解（先 A，后 B·C），都用它；custom_eig 若设置则取代 eig。
+//   custom_multiply / custom_solve：同 rcwa::solve（稠密乘法、按列选主元的稠密线性求解改由它们完成）。
 //   linear：所有稠密线性求解用的方法。不选主元的 LU 只用于演示：这里的模式矩阵里有成块的零，没有行交换时
 //     结果常常是坏的，打开 diagnostics 后 max_solve_backward_error 如实反映。
 //   homogeneous_fast_path = true（默认）：均匀层用解析模式。在逐级次的 (s, t) 基下它的 W、V 都是对角的，膜与膜的界面、
@@ -749,6 +750,8 @@ inline ConicalResult solve_conical_impl(const Stack& stack, double wavelength, d
     dt::Work work;
     work.linear = options.linear;
     work.diagnostics = options.diagnostics;
+    work.multiply_hook = &options.custom_multiply;
+    work.solve_hook = &options.custom_solve;
     if (fields) {
         *fields = dc::FieldCapture{};
         fields->materials.resize(static_cast<std::size_t>(layer_count));

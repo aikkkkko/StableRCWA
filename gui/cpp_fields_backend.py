@@ -6,7 +6,8 @@ to Python with a compatibility note. RCWA_VERIFY_PYTHON=1 explicitly enables
 an optional second solve for comparison; ordinary C++ runs never solve in Python.
 
 Periodic 2D models (periodic2d, isotropic analytic Fourier, N <= 625) default to the Python solver (cpp_backend.DEFAULT_BACKEND_2D:
-the C++ route measured slower); with RCWA_2D_BACKEND=cpp they use the same executable with
+the C++ route is only faster at larger N); when the model asks for it (backend_2d = "cpp", the GUI's 2-D solver choice) or
+RCWA_2D_BACKEND=cpp sets that default, they use the same executable with
 PROTOCOL_2D.md: the request carries sampling {z, plane, nt, at}; the reply manifest describes
 [6,nz,nt] fields, [2,6,nz,nt] phase/mask and t/x/y/z coordinate files. Every manifest item and
 every file header is validated as strictly as in 1D; any mismatch falls back to Python as a whole.
@@ -77,7 +78,7 @@ def warmup():
         if common.backend_2d()[0] == "cpp":
             covered = "周期平面 TE/TM、圆锥入射与二维周期的效率、六复场和相位使用一次 C++ 求解。"
         else:
-            covered = "周期平面 TE/TM 与圆锥入射的效率、六复场和相位使用一次 C++ 求解（二维周期默认用 Python，设环境变量 RCWA_2D_BACKEND=cpp 改用 C++）。"
+            covered = "周期平面 TE/TM 与圆锥入射的效率、六复场和相位使用一次 C++ 求解（二维周期默认用 Python，界面的“二维求解”选 C++ 或设环境变量 RCWA_2D_BACKEND=cpp 改用 C++）。"
         message = f"C++ 后端：{exe}；{covered}" if exe else f"C++ 后端不可用，使用 Python：{note}"
         if exe and note:
             message += f"（{note}）"

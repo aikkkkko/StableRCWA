@@ -100,15 +100,20 @@ endif()
 # 所以默认不编（CI 里也不编）。Windows + MSVC：先运行 standalone/install_mkl.bat 下载运行库，然后
 #   cmake -S . -B build -DSTABLERCWA_BUILD_STANDALONE_MKL=ON
 #   cmake --build build --config Release --target test_standalone_mkl
-# 链接的导入库默认是 standalone/mkl/lib/mkl_rt.lib（对应 oneMKL 2026 及以后的 mkl_rt.3.dll）；别的 MKL 用
-# -DSTABLERCWA_MKL_RT_LIB=<导入库或共享库的路径> 指定。Windows 上有 standalone/mkl/bin 时，编完会把里面的 DLL 拷到
-# 测试程序旁边；没有时运行库要在 PATH 里。
+# 链接的库：Windows 上默认是 standalone/mkl/lib/mkl_rt.lib（对应 oneMKL 2026 及以后的 mkl_rt.3.dll）；其他系统上用
+# find_library 找 mkl_rt。别的 MKL 或找不到时用 -DSTABLERCWA_MKL_RT_LIB=<导入库或共享库的路径> 指定。Windows 上有
+# standalone/mkl/bin 时，编完会把里面的 DLL 拷到测试程序旁边；没有时运行库要在 PATH 里。
 option(STABLERCWA_BUILD_STANDALONE_MKL "编译 standalone/ 里 oneMKL 版本征分解的测试（需要 oneMKL 2025.0.1 或更新）" OFF)
 if(STABLERCWA_BUILD_STANDALONE_MKL)
-  set(STABLERCWA_MKL_RT_LIB "${CMAKE_CURRENT_SOURCE_DIR}/standalone/mkl/lib/mkl_rt.lib" CACHE FILEPATH
-      "oneMKL 单动态库 mkl_rt 的导入库（或共享库）")
-  if(NOT EXISTS "${STABLERCWA_MKL_RT_LIB}")
-    message(FATAL_ERROR "STABLERCWA_MKL_RT_LIB 指向的文件不存在：${STABLERCWA_MKL_RT_LIB}")
+  if(WIN32)
+    set(STABLERCWA_MKL_RT_LIB "${CMAKE_CURRENT_SOURCE_DIR}/standalone/mkl/lib/mkl_rt.lib" CACHE FILEPATH
+        "oneMKL 单动态库 mkl_rt 的导入库（或共享库）")
+  else()   # standalone/mkl/lib/mkl_rt.lib 是 Windows 的导入库，这里用不上
+    find_library(STABLERCWA_MKL_RT_LIB NAMES mkl_rt DOC "oneMKL 单动态库 mkl_rt（libmkl_rt.so / libmkl_rt.dylib）")
+  endif()
+  if(NOT STABLERCWA_MKL_RT_LIB OR NOT EXISTS "${STABLERCWA_MKL_RT_LIB}")
+    message(FATAL_ERROR "找不到 oneMKL 的 mkl_rt（STABLERCWA_MKL_RT_LIB = ${STABLERCWA_MKL_RT_LIB}）；"
+                        "用 -DSTABLERCWA_MKL_RT_LIB=<导入库或共享库的路径> 指定")
   endif()
   enable_testing()
   add_executable(test_standalone_mkl standalone/tests/test_standalone_mkl.cpp)
@@ -118,5 +123,56 @@ if(STABLERCWA_BUILD_STANDALONE_MKL)
     add_custom_command(TARGET test_standalone_mkl POST_BUILD
                        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/standalone/mkl/bin"
                                "$<TARGET_FILE_DIR:test_standalone_mkl>")
+  endif()
+endif()
+
+# oneMKL 后端（include/stablercwa/mkl/mkl_backend.hpp：本征分解、稠密乘法、线性求解交给 MKL，经三个钩子接进 RCWA 求解器）
+# 的测试、测速程序与带 MKL 的 JSON 命令行程序。要有 oneMKL 2025.0.1 或更新，所以默认不编（CI 里也不编）；库本身不受这个选项影响。
+# 目标 stablercwa_mkl 链接 mkl_rt 并定义 STABLERCWA_WITH_MKL=1，于是 rcwa_json.hpp 接受 "backend": "mkl"；
+# 自己的程序 target_link_libraries(... stablercwa_mkl) 即可。同一个程序里包含 rcwa_json.hpp 的源文件要么都链接 stablercwa_mkl，
+# 要么都不链接（这个宏改变内联函数的定义）。
+# Windows + MSVC：先运行 standalone/install_mkl.bat 下载运行库，然后
+#   cmake -S . -B build -DSTABLERCWA_WITH_MKL=ON
+#   cmake --build build --config Release --target test_rcwa_mkl bench_mkl_rcwa rcwa_json_mkl
+# 链接的库：Windows 上默认是 standalone/mkl/lib/mkl_rt.lib（对应 oneMKL 2026 及以后的 mkl_rt.3.dll）；其他系统上用
+# find_library 找 mkl_rt（例如 oneAPI 或 pip 装的 libmkl_rt.so），找不到时用 -DSTABLERCWA_MKL_RT_LIB=<路径> 指定。
+# 只在 Windows + MSVC 上测过。Windows 上有 standalone/mkl/bin 时，编完把里面的 DLL 拷到程序旁边（内容没变的不再拷）。
+option(STABLERCWA_WITH_MKL "编译 oneMKL 后端的测试与测速程序（需要 oneMKL 2025.0.1 或更新）" OFF)
+if(STABLERCWA_WITH_MKL)
+  if(WIN32)
+    set(STABLERCWA_MKL_RT_LIB "${CMAKE_CURRENT_SOURCE_DIR}/standalone/mkl/lib/mkl_rt.lib" CACHE FILEPATH
+        "oneMKL 单动态库 mkl_rt 的导入库（或共享库）")
+  else()   # standalone/mkl/lib/mkl_rt.lib 是 Windows 的导入库，这里用不上
+    find_library(STABLERCWA_MKL_RT_LIB NAMES mkl_rt DOC "oneMKL 单动态库 mkl_rt（libmkl_rt.so / libmkl_rt.dylib）")
+  endif()
+  if(NOT STABLERCWA_MKL_RT_LIB OR NOT EXISTS "${STABLERCWA_MKL_RT_LIB}")
+    message(FATAL_ERROR "找不到 oneMKL 的 mkl_rt（STABLERCWA_MKL_RT_LIB = ${STABLERCWA_MKL_RT_LIB}）；"
+                        "用 -DSTABLERCWA_MKL_RT_LIB=<导入库或共享库的路径> 指定")
+  endif()
+  add_library(stablercwa_mkl INTERFACE)
+  target_link_libraries(stablercwa_mkl INTERFACE stablercwa "${STABLERCWA_MKL_RT_LIB}")
+  target_compile_definitions(stablercwa_mkl INTERFACE STABLERCWA_WITH_MKL=1)
+  enable_testing()
+  add_executable(test_rcwa_mkl tests/mkl/test_rcwa_mkl.cpp)
+  target_link_libraries(test_rcwa_mkl PRIVATE stablercwa_mkl)
+  target_include_directories(test_rcwa_mkl PRIVATE examples tests)
+  add_test(NAME test_rcwa_mkl COMMAND test_rcwa_mkl)
+  set(mkl_targets test_rcwa_mkl)
+  if(STABLERCWA_BUILD_EXAMPLES)
+    add_executable(bench_mkl_rcwa examples/bench_mkl_rcwa.cpp)
+    target_link_libraries(bench_mkl_rcwa PRIVATE stablercwa_mkl)
+    target_include_directories(bench_mkl_rcwa PRIVATE examples tests)
+    # 与 rcwa_json 同一份源文件，只是多了 "backend": "mkl"；程序名不同，默认的 rcwa_json 照旧不依赖 MKL。
+    add_executable(rcwa_json_mkl examples/rcwa_json.cpp)
+    target_link_libraries(rcwa_json_mkl PRIVATE stablercwa_mkl)
+    target_include_directories(rcwa_json_mkl PRIVATE examples)
+    list(APPEND mkl_targets bench_mkl_rcwa rcwa_json_mkl)
+  endif()
+  file(GLOB mkl_dlls "${CMAKE_CURRENT_SOURCE_DIR}/standalone/mkl/bin/*.dll")   # 配置时的内容；运行库也可以在 PATH 里
+  if(WIN32 AND mkl_dlls)
+    foreach(target ${mkl_targets})
+      add_custom_command(TARGET ${target} POST_BUILD
+                         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${mkl_dlls} "$<TARGET_FILE_DIR:${target}>")
+    endforeach()
   endif()
 endif()

@@ -38,13 +38,13 @@ TE主分量为Ey，TM主分量为Hy。图中的电场分量除以入射电场幅
 ## C++ 后端（StableRCWA）
 
 符合条件的一维周期模型（平面、圆锥）由 C++ 一次求解给出各级衍射效率、六个复场分量与相位；圆锥结果还保存完整复 Jones 矩阵。
-**二维交叉光栅默认由 Python 求解器计算**（实测 C++ 的二维本征分解在每个 N 上都比 Python 慢，见“速度与磁盘”）；设环境变量 `RCWA_2D_BACKEND=cpp` 才走 C++。
+**二维交叉光栅默认由 Python 求解器计算**（实测 C++ 只在谐波数较多时快 10%–25%，谐波少时与 Python 相当或略慢，见“速度与磁盘”）；侧栏“二维求解”选 C++ 才走 C++。
 Python 负责建模、读取数据、绘图与保存结果。
 
 | 模型 | 效率、Jones、六复场、相位 |
 |---|---|
 | 周期平面 TE/TM、周期圆锥入射；材料各向同性且 Fourier 系数取解析积分或 FFT | C++ 一次求解 |
-| 二维周期（xz 或 yz 切面）；材料各向同性、解析 Fourier 系数、Li 因式分解、谐波总数 N=(2M+1)(2My+1)≤625 | 默认 Python；设 `RCWA_2D_BACKEND=cpp` 后 C++ 一次求解 |
+| 二维周期（xz 或 yz 切面）；材料各向同性、解析 Fourier 系数、Li 因式分解、谐波总数 N=(2M+1)(2My+1)≤625 | 默认 Python；侧栏“二维求解”选 C++ 后 C++ 一次求解 |
 | 一维的单轴晶体、横向 PML（含混合偏振与自动选参） | Python |
 | 二维的横向 PML、单轴晶体、FFT 系数、背景覆盖与磁性介质 | 不支持：界面入口拒绝，不交给任何求解器 |
 
@@ -55,12 +55,17 @@ Python 负责建模、读取数据、绘图与保存结果。
   对照失败会保留完整有效的 C++ 结果，并记录失败原因；只有实际完成对照才显示差值。
 - C++ 不可用、编译失败、超时、求解失败（含二维的 Rayleigh 异常点与数值失败）或二进制结果格式不符时，完整回退 Python 并在 `backend.note` 写明原因；
   遇到 Rayleigh 异常点时 Python 随后给出的中文提示与以前完全相同。
-- **怎么打开二维的 C++ 路径**：设环境变量 `RCWA_2D_BACKEND=cpp`，再启动界面。启动脚本不改环境变量，`gui.py` 把自己的环境原样交给工作进程，所以在同一个终端里设好再启动即可：
-  macOS 终端 `RCWA_2D_BACKEND=cpp ./启动GUI.command`；Windows 命令行 `set RCWA_2D_BACKEND=cpp` 之后运行 `start_gui.bat`（双击启动时用系统环境变量设置）。
-  不设或留空就是默认（Python）；取值不分大小写，只认 `python` 与 `cpp`，别的值（包括还没有实现的 `auto`）按默认处理，并在结果页的说明里写出“无法识别”。
-  这个开关只管二维：一维的路由、结果与它无关；`RCWA_BACKEND=python` 仍强制全部 Python，`RCWA_BACKEND=cpp` 不是有效取值，不会打开二维的 C++。
-  默认时 `backend.note` 是一句中性的话（“二维周期模型默认由 Python 求解器计算（环境变量 RCWA_2D_BACKEND=cpp 改用 C++）”），结果页以“未用 C++：”开头显示它，不是故障。
-  **下面各条写的是打开 `RCWA_2D_BACKEND=cpp` 之后的二维 C++ 路径。**
+- **怎么选二维的求解器**：求解方式选“二维周期 RCWA”后，侧栏多出“二维求解”一项，可选 Python 或 C++，每次计算各自生效。
+  选择随模型一起保存：计算时写进模型的 `backend_2d`（`"python"` 或 `"cpp"`），所以结果目录里的 `model.json`、导出的模型 JSON 都带着它；
+  载入带 `backend_2d` 的模型时，侧栏显示它；载入不带它的模型或预设时，显示默认值。
+  默认值由环境变量 `RCWA_2D_BACKEND` 决定：不设或留空是 Python，设成 `cpp` 时侧栏初始就选 C++。启动脚本不改环境变量，`gui.py` 把自己的环境原样交给
+  工作进程，所以在同一个终端里设好再启动即可：macOS 终端 `RCWA_2D_BACKEND=cpp ./启动GUI.command`；Windows 命令行 `set RCWA_2D_BACKEND=cpp`
+  之后运行 `start_gui.bat`（双击启动时用系统环境变量设置）。取值不分大小写，只认 `python` 与 `cpp`，别的值（包括还没有实现的 `auto`）按默认处理，
+  并在结果页的说明里写出“无法识别”。不经界面、直接调用 `gui_worker` 的模型不写 `backend_2d` 时，同样按这个环境变量。
+  这个选项只管二维：一维的路由、结果与它无关；`RCWA_BACKEND=python` 仍强制全部 Python（也压过“二维求解”选的 C++），`RCWA_BACKEND=cpp` 不是有效取值。
+  用 Python 时 `backend.note` 是一句中性的话：默认时是“二维周期模型默认由 Python 求解器计算（界面的“二维求解”选 C++，或设环境变量 RCWA_2D_BACKEND=cpp，改用 C++）”，
+  在侧栏明确选了 Python 时是“二维周期模型按界面的选择由 Python 求解器计算”。结果页以“未用 C++：”开头显示它，不是故障。
+  **下面各条写的是选了 C++ 之后的二维 C++ 路径。**
 - 二维走同一个 `rcwa_fields` 程序（协议见 `validation/field_reference_2d/PROTOCOL_2D.md`）：请求带切面方向 `plane`（xz 或 yz）、沿切面的采样数 `nt`（界面的“横向采样数”）与固定坐标 `at`；
   应答的清单与每个 NPY 文件头、字节数、坐标、弱场掩膜都逐项核对，任何一项不符都整体退回 Python。结果文件的键、dtype、形状与 Python 路径一致，旧的显示代码不区分来源。
   二维的 `backend` 段与一维同构；`RCWA_VERIFY_PYTHON=1` 同样才会多做一次 Python 二维求解来核对各级效率。
@@ -98,24 +103,24 @@ Python 负责建模、读取数据、绘图与保存结果。
 
 ### 速度与磁盘（实测，一个时间点的快照）
 
-二维 C++ 路径**比 Python 慢**，这是二维默认走 Python 的原因（`cpp_backend.DEFAULT_BACKEND_2D`；改回 C++ 的条件：C++ 的本征分解并行化，并在界面默认线程数下实测不慢于 Python）。
-这一节的数字都是在 `eig_qr` 多线程化之前测的；现在 `eig_qr` 在矩阵阶数 2N ≥ 192 时使用多个线程，二维默认路由仍是 Python。
-界面默认线程数（Mac 上 8 个）下：N = 169 / 289 / 625 时 C++ 0.93 / 1.81 / 13.5 s，Python 0.69 / 1.72 / 9.24 s（预设那样一个结构层加两层均匀膜，nx=360、nz=220，两次取较小值，平均负载约 8）。
-下面是单线程的数字（`gui_worker.compute`，二维预设的“一个柱层 + 两层均匀膜”，M=My=4…12，横向采样 nx=360、纵向 nz=220，
-各 3 次交错运行取最小值；C++ 一个线程，Python 一个 BLAS 线程；时间包含建模、求解、校验与保存，不含程序启动前的编译）：
+二维默认仍走 Python（`cpp_backend.DEFAULT_BACKEND_2D`）：C++ 只在谐波数较多时快一些，谐波少时与 Python 相当或略慢。2026-10-26 实测
+（`gui_worker` 整个工作进程的墙上时间，含启动、建模、求解、场重建、校验与保存，不含第一次的现场编译；二维预设“一个柱层 + 两层均匀膜”，
+横向采样 nx=360、纵向 nz=220；Python 与 C++ 交错各跑 3 次取最快；界面默认线程数；`eig_qr` 已经多线程化）：
 
-| N | C++ | Python（Apple M1 Pro、macOS 15.4，`/usr/bin/python3`，NumPy 2.0.2 / Accelerate） | C++ ÷ Python |
-|---|---|---|---|
-| 81 | 0.70 s | 0.37 s | 1.9 |
-| 169 | 1.00 s | 0.65 s | 1.5 |
-| 289 | 2.06 s | 1.70 s | 1.2 |
-| 441 | 6.15 s | 4.94 s | 1.2 |
-| 625 | 17.4 s | 10.5 s | 1.7 |
+| N | Mac：Python | Mac：C++ | Windows：Python | Windows：C++（MinGW，界面现场编译） | Windows：C++（MSVC） | Windows：C++ + oneMKL（界面没有接） |
+|---:|---:|---:|---:|---:|---:|---:|
+| 169 | 0.91 s | 1.13 s | 2.03 s | 2.01 s | 1.99 s | 2.02 s |
+| 289 | 1.93 s | 1.60 s | 3.05 s | 2.51 s | 2.47 s | 2.25 s |
+| 625 | 8.73 s | 6.53 s | 7.61 s | 6.92 s | 6.69 s | 3.49 s |
 
-测量时 macOS 的平均负载 10–18（别的任务同时在跑），所以绝对值只是参考；C++ 在每个 N 上都比 Python 慢。
-同一个测量在 Windows（Ryzen 5950X，Python 3.11 / NumPy 1.26 / OpenBLAS 单线程，MinGW g++ 13.1 编出的程序；测量时机器另有约 50% 的 CPU 被别的任务占用，没有取到平均负载）：
-C++ 0.75 / 1.20 / 2.97 / 8.44 / 22.8 s，Python 0.36 / 0.64 / 1.83 / 4.78 / 12.2 s（N = 81 / 169 / 289 / 441 / 625），C++ 在每个 N 上都慢 1.6–2.1 倍。
-测这些数字时，C++ 求解器只按**结构层**并行，所以只有一个结构层的模型无论开多少线程都只用约 1 个核；`eig_qr` 多线程化之后，盈亏平衡点已经移动，上面的数字没有重测。要强制某一边，用 `RCWA_BACKEND=python`（Python）或 `RCWA_FIELDS_EXE`（指定程序）。
+Mac：Apple M1 Pro，界面默认 6 个线程，`/usr/bin/python3` 3.9.6、NumPy 2.0.2 / Accelerate，测量时平均负载约 6（别的任务同时在跑，绝对值只作参考）。
+Windows：Ryzen 9 5950X，界面默认 16 个线程，Python 3.11、NumPy 1.26.4 / OpenBLAS。最后一列是另编的带 oneMKL 后端的同一程序（MSVC 编 `examples/rcwa_fields.cpp`，加 `/DSTABLERCWA_WITH_MKL=1`、链接
+`standalone/mkl/lib/mkl_rt.lib`；测量时临时改了 `cpp_backend.py`，让请求带上 `"backend": "mkl"`），
+界面目前不会用它，列出来只为说明换上 MKL 能快多少。
+C++ 在 N = 289、625 时快 10 %–25 %；N = 169 时在 Mac 上慢 0.2 s——这一档求解本身 C++ 快一倍（0.16 s 对 0.31 s），慢在起进程、写原始场文件再读回的固定开销。
+`eig_qr` 多线程化之前（2026-10-13 前后）C++ 在每个 N 上都比 Python 慢 1.2–2.1 倍，那时的数字已经作废。
+默认改成 C++ 的条件写在 `DEFAULT_BACKEND_2D` 的注释里：三档都不比 Python 慢，或者界面接入 oneMKL 后端。要强制某一边，用侧栏的“二维求解”，
+或 `RCWA_BACKEND=python`（全部 Python）、`RCWA_FIELDS_EXE`（指定程序）。
 磁盘：采样 1600×1200 时 `cpp_fields-编号/` 里保留的原始 NPY 是 6·1200·1600·16 B（fields）+ 2·6·1200·1600·8 B（phase）+ 2·6·1200·1600 B（mask）≈ 391 MB（按形状算出，隐藏探针行再多 0.17%），
 `fields.npz` 另存 `phase_values`、`phase_masks`。不需要原始 NPY 时可以在计算完成后删掉该目录，界面显示与导出只读 `fields.npz`。
 校验的额外开销（N=625、nt=1600、nz=1200）见 `validation/field_reference_2d/PROTOCOL_2D.md` 6.4。
@@ -144,7 +149,7 @@ Windows 双击启动时可设置 `RCWA_CXX` 为编译器完整路径，或从 MS
 | 环境变量 | 作用 |
 |---|---|
 | `RCWA_BACKEND=python` | 强制全部使用 Python（一维、二维都是；取别的值，包括 `cpp`，不起作用） |
-| `RCWA_2D_BACKEND=cpp` | 打开二维周期模型的 C++ 路径；不设（或 `python`）时二维走 Python；只管二维，别的值按默认处理并在说明里写出 |
+| `RCWA_2D_BACKEND=cpp` | 二维周期模型默认用 C++：侧栏“二维求解”的初始值取它，模型里写了 `backend_2d` 时以模型为准；不设（或 `python`）时默认 Python；只管二维，别的值按默认处理并在说明里写出 |
 | `RCWA_FIELDS_EXE=路径` | 覆写完整场协议程序，优先于旧覆写 |
 | `RCWA_JSON_EXE=路径` | 仍供 `cpp_backend` 旧效率 API 使用；GUI 只设置它时完整回退 Python 并说明原因 |
 | `RCWA_VERIFY_PYTHON=1` | 显式增加一次 Python 求解作效率与 Jones 对照 |
@@ -249,7 +254,7 @@ TM近斜壁场及尖角峰值应继续检查M、切片与采样收敛。
 6. 点击“开始计算”，本次六分量场图采用当前剖面方向与位置；结果标明固定坐标。
    结构页再次移动剖切线只更新几何预览，原场图仍对应已保存计算。改变场切面需重新计算。
 
-二维界面使用Li因式分解的解析材料系数，默认由 `2drcwa/rcwa2d.py` 求解（`backend.fields` 为 `python`）。设环境变量 `RCWA_2D_BACKEND=cpp` 后，符合条件时（各向同性、解析Fourier系数、`(2M+1)(2My+1)≤625`）
+二维界面使用Li因式分解的解析材料系数，默认由 `2drcwa/rcwa2d.py` 求解（`backend.fields` 为 `python`）。侧栏“二维求解”选 C++（或环境变量 `RCWA_2D_BACKEND=cpp` 把默认改成 C++）后，符合条件时（各向同性、解析Fourier系数、`(2M+1)(2My+1)≤625`）
 由 C++ 一次求解各级效率、切面六复场与相位（`backend.fields` 为 `cpp`）；C++ 不可用或任何一步失败时完整回退 `2drcwa/rcwa2d.py`，结果文件格式不变。
 **二维材料FFT、二维横向PML、二维单轴晶体与磁性介质尚未接入**：界面明确提示并拒绝这些配置，它们在二维里是“不支持”，没有任何求解器会去算
 （C++ 失败时的回退只针对已接受的各向同性、解析 Fourier 模型）；原一维、圆锥模式的解析/FFT选择保留。
@@ -484,7 +489,7 @@ TM孤立介质条，结果页确认记录为FFT分支。
 C++后端由 `python -m unittest validation.test_cpp_backend -v`（在本目录运行）检查：内置示例中
 符合条件的模型（M降到20）以及另外九个平面/圆锥算例，C++与Python的各级效率相差不超过10⁻⁹，
 圆锥的传播级Jones矩阵元相差不超过10⁻⁹；FFT 模型也包含在 C++ 对拍中。PML、单轴晶体和 `RCWA_BACKEND=python`
-走Python（二维模型默认也走 Python，设 `RCWA_2D_BACKEND=cpp` 才走 C++，见下一段）；找不到程序、编译失败、超时、程序报错或数值失败时退回Python且写明原因；现场编译的
+走Python（二维模型默认也走 Python，侧栏“二维求解”选 C++ 才走 C++，见下一段）；找不到程序、编译失败、超时、程序报错或数值失败时退回Python且写明原因；现场编译的
 “缺了就编、旧了重编”；起服务后经 `/api/run` 跑平面、圆锥、PML各一例并核对 `metrics.json`；
 用无头Chrome对结果页截图并检查后端一行与脚本错误；取消计算后C++子进程不再存活（Windows上靠作业对象）；
 被中途终止的编译留下的锁文件和半成品不妨碍下一次编译；`progress.json` 正被读取时照样写得进去；

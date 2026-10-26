@@ -188,6 +188,7 @@ python3 gui/gui.py
 | 一般 6×6 本构张量 | – | 一维，实验性，未接入界面 |
 | GPU 本征分解（CUDA cuSOLVER） | 可选，实验性 | – |
 | oneMKL 本征分解，给 DLL 项目直接替换的单个 .cpp（Windows x64） | 可选，[`standalone/`](standalone/README.zh-CN.md) | – |
+| RCWA 求解器的本征分解、乘法、线性求解交给 oneMKL（`mkl::use_mkl`，JSON 里 `"backend": "mkl"`） | 可选 | – |
 
 <sub>¹ 来自作者早先的 Python 求解器包，验证报告之后补进 `docs/`。</sub>
 
@@ -226,6 +227,37 @@ FFT 对 ε 与 1/ε 分别做均匀中点采样，需要同时检查 `M` 与 `N`
 
 Visual Studio 里的设置、接口约定、完整的用时表和测试见 [standalone/README.zh-CN.md](standalone/README.zh-CN.md)。
 
+## 可选：RCWA 求解器的 oneMKL 后端
+
+`include/stablercwa/mkl/mkl_backend.hpp` 把 RCWA 求解器的本征分解、稠密矩阵乘法、稠密线性求解交给 Intel oneMKL。它接在一维、
+圆锥入射、二维三个求解器的 `custom_eig`、`custom_multiply`、`custom_solve` 钩子上，`mkl::use_mkl` 一次设好三个。
+JSON 请求里写 `"options": {"backend": "mkl"}` 即可选它。
+
+```cpp
+#include "stablercwa/mkl/mkl_backend.hpp"
+
+stablercwa::set_num_threads(8);                    // MKL 也用这么多线程
+stablercwa::rcwa::Options opt;                     // 二维用 rcwa::Options2D
+stablercwa::mkl::Settings s;
+s.real_path = true;                                // 只在各层都无吸收（折射率全是实数）时打开
+stablercwa::mkl::use_mkl(opt, s);                  // 有吸收的层时用 mkl::use_mkl(opt)
+```
+
+- **更快。** 在 16 核的 Ryzen 9 5950X 上用 8 个线程，整次求解对层矩阵是复的结构快 1.6 到 3.2 倍，
+  对称、无吸收的结构快 3.1 到 5.9 倍（阶数 338 到 3201）。
+- **实的层矩阵可以走 `dgeev`。** 结构无吸收、并且相对原点或单元中心对称时，层矩阵在舍入误差以内是实的。打开 `real_path`
+  后，后端丢掉舍入量级的虚部，改用 `dgeev`，比 `zgeev` 快 2.2 到 2.5 倍；其余结构走 `zgeev`。`real_path` 默认关闭：
+  弱于 k ≈ 1e-13 的吸收在矩阵里与舍入误差分不开，而在高 Q 共振附近照样要紧（实测一例把 k = 1e-13 当成 0，效率差 3.5e-6），
+  所以只在各层折射率都是实数时打开。JSON 请求按其中的折射率自动决定。
+- **结果在舍入误差以内相同，不逐位相同。** 效率和近场与内置的运算差 1e-12 量级，二维 24 个冻结的 Python 参照全部通过，
+  奇异的界面方程组照样与内置的 LU 一样报数值失败。
+  最大的差 2.4e-11 出在一个病态的高折射率差 TM 算例上，走 `dgeev`（`zgeev` 是 4.6e-12）；那一例只丢掉舍入虚部，QR 自己的
+  结果就变 1.2e-11。MKL 的末位会随线程数、处理器变。
+- **可选。** CMake 选项 `STABLERCWA_WITH_MKL`（默认关闭）提供目标 `stablercwa_mkl`。要 oneMKL 2025.0.1 或更新，
+  `standalone/install_mkl.bat` 可以下载。库的其余部分仍然不依赖任何外部库。
+
+怎么装、线程怎么分、用时表见[使用说明](docs/user-guide.zh-CN.md#onemkl-后端可选)。
+
 ## 验证
 
 | 检查 | 结果 |
@@ -258,7 +290,7 @@ cd build && ctest -C Release
 ## 文档
 
 - [快速上手：每一步都写了应当看到的结果](docs/quickstart.zh-CN.md)
-- [使用说明：约定、圆锥入射、二维、近场、JSON 协议、图形界面、本征算法、GPU](docs/user-guide.zh-CN.md)
+- [使用说明：约定、圆锥入射、二维、近场、JSON 协议、图形界面、本征算法、oneMKL、GPU](docs/user-guide.zh-CN.md)
 - [验证报告](docs/validation.zh-CN.md)
 - `include/stablercwa/` 下每个头文件开头的接口说明
 

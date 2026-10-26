@@ -740,8 +740,8 @@ class Eligibility(Case):
 
 # ===================================================================================================== 1b. the 2-D route switch (round 3, M2)
 class Routing2D(Case):
-    """2-D models go to the PYTHON solver by default (cpp_backend.DEFAULT_BACKEND_2D: the C++ eigen solver is slower than Python at every N
-    until it is parallelised); RCWA_2D_BACKEND=cpp turns the C++ route on. 1-D routing does not depend on the switch."""
+    """2-D models go to the PYTHON solver by default (cpp_backend.DEFAULT_BACKEND_2D: C++ is only faster at larger N); RCWA_2D_BACKEND=cpp makes
+    C++ the default, and the GUI's 二维求解 option (backend_2d in the model) decides per model, over the variable. 1-D routing ignores both."""
 
     UNRECOGNISED = ("auto", "gpu", "1", "true", "c++", "cpp2", "none")
 
@@ -866,6 +866,93 @@ class Routing2D(Case):
                 self.assertEqual((block["efficiency"], block["fields"], block["phase"]), (expected,) * 3, block["note"])
                 self.assertEqual(block["note"], common.NOTE_2D_PYTHON if value is None else "")
 
+
+    def test_the_model_choice_wins_over_the_switch(self):
+        """The GUI's 二维求解 option is written into the model as backend_2d; when present it decides the 2-D route whatever RCWA_2D_BACKEND
+        says (the variable only sets the default, i.e. the option's initial value). Without it the variable decides, as before."""
+        for value in (None, "python", "cpp", "banana"):
+            with self.subTest(RCWA_2D_BACKEND=value), EnvPatch(RCWA_2D_BACKEND=value, RCWA_BACKEND=None):
+                cfg = model_pillar()
+                cfg["backend_2d"] = "cpp"
+                self.assertEqual(common.backend_2d_for(cfg), ("cpp", "", True))
+                self.assertEqual(common.eligibility(cfg), (True, ""))
+                cfg["backend_2d"] = "python"
+                self.assertEqual(common.backend_2d_for(cfg), ("python", "", True))
+                self.assertEqual(common.eligibility(cfg), (False, common.NOTE_2D_PYTHON_CHOSEN))
+                del cfg["backend_2d"]
+                self.assertEqual(common.backend_2d_for(cfg), common.backend_2d() + (False,))
+        for alarm in ("失败", "错误", "不可用", "警告", "注意", "无法"):           # a neutral sentence, like NOTE_2D_PYTHON
+            self.assertNotIn(alarm, common.NOTE_2D_PYTHON_CHOSEN)
+        self.assertIn("二维求解", common.NOTE_2D_PYTHON)                            # the default note names the option ...
+        self.assertIn("RCWA_2D_BACKEND=cpp", common.NOTE_2D_PYTHON)                 # ... and the variable
+        with EnvPatch(RCWA_BACKEND="python", RCWA_2D_BACKEND=None):                # RCWA_BACKEND=python still wins over the option
+            cfg = model_pillar()
+            cfg["backend_2d"] = "cpp"
+            attempt = backend.attempt(cfg, self.tmp)
+            self.assertFalse(attempt.used)
+            self.assertIn("RCWA_BACKEND=python", attempt.note)
+        presets = [gui_models.preset(row["id"]) for row in gui_models.PRESETS]
+        one_d = [cfg for cfg in presets if cfg["mode"] != "periodic2d"]
+        with EnvPatch(RCWA_2D_BACKEND=None, RCWA_BACKEND=None):                    # 1-D models ignore the key
+            baseline = [common.eligibility(cfg) for cfg in one_d]
+            for choice in ("python", "cpp"):
+                marked = [dict(cfg, backend_2d=choice) for cfg in one_d]
+                self.assertEqual([common.eligibility(cfg) for cfg in marked], baseline)
+
+    def test_normalize_keeps_a_valid_choice_and_rejects_others(self):
+        base = model_pillar()
+        self.assertNotIn("backend_2d", base)                                       # absent stays absent: the variable decides at run time
+        for raw, expected in (("cpp", "cpp"), ("CPP", "cpp"), (" Python ", "python"), ("python", "python")):
+            with self.subTest(raw=raw):
+                cfg = copy.deepcopy(base)
+                cfg["backend_2d"] = raw
+                self.assertEqual(normalize_2d(cfg)["backend_2d"], expected)
+                self.assertEqual(gui_models.normalize(cfg)["backend_2d"], expected)       # the GUI entry point (preview, run)
+        cfg = copy.deepcopy(base)
+        cfg["backend_2d"] = None
+        self.assertNotIn("backend_2d", normalize_2d(cfg))
+        for raw in ("auto", "gpu", "", "c++", 1, True):
+            with self.subTest(raw=raw):
+                cfg = copy.deepcopy(base)
+                cfg["backend_2d"] = raw
+                with self.assertRaises(ValueError):
+                    normalize_2d(cfg)
+
+    def test_the_model_choice_reaches_the_worker(self):
+        """Through gui_worker.compute: backend_2d = cpp runs C++ with the variable unset, backend_2d = python runs Python with the variable at cpp,
+        and the choice is recorded in the job's model.json."""
+        env = dict(RCWA_BACKEND=None, RCWA_JSON_EXE=None, RCWA_VERIFY_PYTHON=None, RCWA_CPP_TIMEOUT=None)
+        cfg = model_pillar("xz", "jones")
+        cfg["backend_2d"] = "cpp"
+        folder = self.tmp / "chosen_cpp"
+        metrics, fields = run_compute(cfg, folder, RCWA_FIELDS_EXE=self.program("standin"), RCWA_2D_BACKEND=None, **env)
+        block = metrics["backend"]
+        self.assertEqual((block["efficiency"], block["fields"], block["phase"], block["note"]), ("cpp", "cpp", "cpp", ""))
+        self.assertEqual(json.loads((folder / "model.json").read_text(encoding="utf-8"))["backend_2d"], "cpp")
+        cfg["backend_2d"] = "python"
+        folder = self.tmp / "chosen_python"
+        metrics, fields = run_compute(cfg, folder, RCWA_FIELDS_EXE=self.program("standin"), RCWA_2D_BACKEND="cpp", **env)
+        block = metrics["backend"]
+        self.assertEqual((block["efficiency"], block["fields"], block["phase"]), ("python",) * 3)
+        self.assertEqual(block["note"], common.NOTE_2D_PYTHON_CHOSEN)
+        self.assertEqual(json.loads((folder / "model.json").read_text(encoding="utf-8"))["backend_2d"], "python")
+        self.assertEqual([entry.name for entry in folder.iterdir() if entry.name.startswith("cpp_")], [])
+
+    def test_the_server_reports_the_default_and_honours_the_choice(self):
+        """/api/bootstrap tells the page which choice to show first (RCWA_2D_BACKEND; python when unset or not understood), and a job that
+        carries backend_2d runs where it says, whatever the server's variable is."""
+        standin = self.program("standin")
+        cfg = model_pillar("xz", "s")
+        for value, default, choice in (("", "python", "cpp"), ("cpp", "cpp", "python"), ("banana", "python", "cpp")):
+            with self.subTest(RCWA_2D_BACKEND=value):
+                server = Server(RCWA_FIELDS_EXE=standin, RCWA_BACKEND="", RCWA_JSON_EXE="", RCWA_VERIFY_PYTHON="", RCWA_CPP_TIMEOUT="",
+                                RCWA_2D_BACKEND=value)
+                self.addCleanup(server.close)
+                self.assertEqual(json.loads(server.get("/api/bootstrap"))["backend_2d_default"], default)
+                job, status = server.run(dict(cfg, backend_2d=choice))
+                self.assertEqual(status["status"], "done", status.get("error"))
+                block = status["metrics"]["backend"]
+                self.assertEqual((block["efficiency"], block["fields"], block["phase"]), (choice,) * 3, block["note"])
 
 # ===================================================================================================== 2. request
 EXPECTED_OPTIONS = {"eig": "qr", "factorization": "li", "homogeneous_fast_path": True}

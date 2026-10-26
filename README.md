@@ -201,6 +201,7 @@ and says so on the results page.
 | General 6×6 constitutive tensors | – | 1-D, experimental, not in the GUI |
 | GPU eigen solver (CUDA cuSOLVER) | optional, experimental | – |
 | oneMKL eigen solver as a single-file drop-in for DLL projects (Windows x64) | optional, [`standalone/`](standalone/README.md) | – |
+| oneMKL for the RCWA solvers' eigensolves, products and linear solves (`mkl::use_mkl`, JSON `"backend": "mkl"`) | optional | – |
 
 <sub>¹ Inherited from the author's earlier Python package; their validation reports will be added to `docs/`.</sub>
 
@@ -243,6 +244,41 @@ matrices, `zgeev` for complex ones). It is separate from the header-only library
 The Visual Studio setup, the conventions, the full timing table and the test are in
 [standalone/README.md](standalone/README.md).
 
+## Optional: oneMKL backend for the RCWA solvers
+
+`include/stablercwa/mkl/mkl_backend.hpp` hands the eigendecompositions, the dense matrix products and the dense linear
+solves of the RCWA solvers to Intel oneMKL. It plugs into the `custom_eig`, `custom_multiply` and `custom_solve` hooks of
+the 1-D, conical and 2-D solvers, and `mkl::use_mkl` sets all three. JSON requests select it with
+`"options": {"backend": "mkl"}`.
+
+```cpp
+#include "stablercwa/mkl/mkl_backend.hpp"
+
+stablercwa::set_num_threads(8);                    // MKL uses the same number of threads
+stablercwa::rcwa::Options opt;                     // rcwa::Options2D for 2-D
+stablercwa::mkl::Settings s;
+s.real_path = true;                                // only if no layer absorbs (all indices real)
+stablercwa::mkl::use_mkl(opt, s);                  // with absorbing layers: mkl::use_mkl(opt)
+```
+
+- **Faster.** On a 16-core Ryzen 9 5950X with 8 threads, a whole solve is 1.6 to 3.2 times faster for structures
+  with complex layer matrices and 3.1 to 5.9 times faster for symmetric lossless ones (orders 338 to 3201).
+- **Real layer matrices can use `dgeev`.** For a lossless structure that is symmetric about the origin or the cell
+  centre, the layer matrices are real up to rounding. With `real_path` on, the backend drops the rounding-level
+  imaginary part and calls `dgeev`, which is 2.2 to 2.5 times as fast as `zgeev`. Other structures use `zgeev`.
+  `real_path` is off by default. Absorption weaker than about k = 1e-13 cannot be told apart from rounding in the matrix,
+  yet near a high-Q resonance it still matters: in a test case, treating k = 1e-13 as zero changed the efficiencies by
+  3.5e-6. So turn it on only when every layer index is real. JSON requests decide it from their refractive indices.
+- **Same results to rounding, not bitwise.** Efficiencies and near fields agree with the built-in solvers to about 1e-12,
+  all 24 frozen 2-D Python references pass, and singular interface systems fail the same way as with the built-in LU. The largest difference, 2.4e-11 with `dgeev` (4.6e-12 with `zgeev`), is in
+  an ill-conditioned high-contrast TM case. There, dropping only the rounding-level imaginary part already moves QR's
+  own result by 1.2e-11. MKL's last digits change with the thread count and the processor.
+- **Optional.** The CMake option `STABLERCWA_WITH_MKL` (off by default) provides the target `stablercwa_mkl`. It needs
+  oneMKL 2025.0.1 or newer, which `standalone/install_mkl.bat` downloads. The rest of the library still has no
+  dependencies.
+
+Setup, thread rules and the timing table are in the [user guide](docs/user-guide.zh-CN.md#onemkl-后端可选) (in Chinese).
+
 ## Validation
 
 | Check | Result |
@@ -277,7 +313,7 @@ GitHub shows `.html` files as source code, so read them on the project site (Git
 ## Documentation
 
 - [Quick start, with expected output for every step](docs/quickstart.zh-CN.md)
-- [User guide: conventions, conical incidence, 2-D, near fields, JSON protocol, GUI, eigen solvers, GPU](docs/user-guide.zh-CN.md)
+- [User guide: conventions, conical incidence, 2-D, near fields, JSON protocol, GUI, eigen solvers, oneMKL, GPU](docs/user-guide.zh-CN.md)
 - [Validation reports](docs/validation.zh-CN.md)
 - Interface comments at the top of each header in `include/stablercwa/`
 

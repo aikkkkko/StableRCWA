@@ -53,7 +53,8 @@
 // 不用 exp(+k0·q·d) 反推，所以厚吸收层、倏逝层也稳定。
 //
 // parallel_layers = true：每个结构层的整个模式求解（Ei、P·Q、本征分解、V）用 parallel_for 分给线程池，结果与串行逐位相同；
-// 此时 timing 里的 eig/linear/product 是各层 CPU 时间之和，不是墙上时间；custom_eig 必须能被多个线程同时调用。
+// 此时 timing 里的 eig/linear/product 是各层 CPU 时间之和，不是墙上时间；custom_eig、custom_multiply、custom_solve
+// 必须能被多个线程同时调用。
 // solve2d_with_operators 的 timing.operators 恒为 0（算子由调用者装配）；solve2d 填写算子装配用时，并计入 timing.total。
 // 本函数可重入，没有全局状态，结果与 set_num_threads 设定的线程数无关（逐位相同）。
 #pragma once
@@ -99,6 +100,9 @@ struct RayleighFailure2D {
 struct Work2D {
     Timing2D timing;
     int n_solve = 0;
+    // Options2D::custom_multiply、custom_solve（指向调用方的 Options2D；空指针或空的函数表示用内置的运算）
+    const std::function<Matrix(const Matrix&, const Matrix&)>* multiply_hook = nullptr;
+    const std::function<Matrix(const Matrix&, const Matrix&)>* solve_hook = nullptr;
     void add(const Work2D& o) {
         timing.eig += o.timing.eig;
         timing.linear += o.timing.linear;
@@ -289,29 +293,49 @@ inline Matrix identity_minus(Matrix m) {
 
 // ------------------------------------------------------------------ 计时的稠密运算
 
+inline bool hooked(const std::function<Matrix(const Matrix&, const Matrix&)>* hook) { return hook && *hook; }
+
+// C = A·B（计时）；设了 custom_multiply 时交给它。
 inline Matrix mul(const Matrix& a, const Matrix& b, Work2D& work) {
     const auto t0 = Clock::now();
-    Matrix c = a * b;
+    const bool use_hook = hooked(work.multiply_hook);
+    Matrix c = use_hook ? (*work.multiply_hook)(a, b) : a * b;
     work.timing.product += seconds_since(t0);
+    if (use_hook && (c.rows() != a.rows() || c.cols() != b.cols()))
+        throw std::invalid_argument("rcwa2d: custom_multiply returned a matrix of the wrong size");
     return c;
 }
 
-// 解 A X = B（选主元 LU）。方程组奇异（零主元）时抛 NumericalFailure2D。
+// 解 A X = B（选主元 LU；设了 custom_solve 时交给它）。方程组奇异（零主元，或钩子抛 std::runtime_error）时抛 NumericalFailure2D。
 inline Matrix solve_dense(Matrix a, Matrix b, Work2D& work) {
     ++work.n_solve;
     const auto t0 = Clock::now();
+    const bool use_hook = hooked(work.solve_hook);
+    const int rows = a.cols(), cols = b.cols();
     Matrix x;
     try {
-        const LU f = ::stablercwa::detail::dense::lu_factor_impl<false>(std::move(a), Pivoting::Partial);
-        x = lu_solve(f, std::move(b));
+        if (use_hook) {
+            x = (*work.solve_hook)(a, b);
+        } else {
+            const LU f = ::stablercwa::detail::dense::lu_factor_impl<false>(std::move(a), Pivoting::Partial);
+            x = lu_solve(f, std::move(b));
+        }
     } catch (const std::runtime_error&) {
         work.timing.linear += seconds_since(t0);
         throw NumericalFailure2D{"线性方程组奇异（LU 出现零主元）"};
     }
     work.timing.linear += seconds_since(t0);
+    if (use_hook && (x.rows() != rows || x.cols() != cols))
+        throw std::invalid_argument("rcwa2d: custom_solve returned a matrix of the wrong size");
     return x;
 }
+// 右端是一个向量；设了 custom_solve 时把它当作一列的矩阵交给钩子。
 inline Vector solve_dense_vector(Matrix a, Vector b, Work2D& work) {
+    if (hooked(work.solve_hook)) {
+        Matrix column(static_cast<int>(b.size()), 1);
+        std::copy(b.begin(), b.end(), column.col(0));
+        return solve_dense(std::move(a), std::move(column), work).column(0);
+    }
     ++work.n_solve;
     const auto t0 = Clock::now();
     Vector x;
@@ -1068,6 +1092,8 @@ inline Result2D solve_impl(const Stack2D& stack, double wavelength, double theta
     const RealVector& Ky = result.Ky;
 
     d2::Work2D work;
+    work.multiply_hook = &options.custom_multiply;
+    work.solve_hook = &options.custom_solve;
     if (capture) *capture = d2::FieldCapture2D{};
 
     try {
@@ -1112,7 +1138,10 @@ inline Result2D solve_impl(const Stack2D& stack, double wavelength, double theta
             }
         }
         const int count = static_cast<int>(solve_layers.size());
-        std::vector<d2::Work2D> works(static_cast<std::size_t>(count));
+        d2::Work2D layer_work;                           // 每层一个（parallel_layers 时各在一个线程里用），最后合计
+        layer_work.multiply_hook = work.multiply_hook;
+        layer_work.solve_hook = work.solve_hook;
+        std::vector<d2::Work2D> works(static_cast<std::size_t>(count), layer_work);
         std::vector<int> infos(static_cast<std::size_t>(count), 0);
         RealVector residuals(static_cast<std::size_t>(count), 0.0);
         std::vector<Matrix> Eis(capture ? static_cast<std::size_t>(count) : 0);

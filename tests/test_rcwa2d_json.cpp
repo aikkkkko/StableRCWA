@@ -717,6 +717,13 @@ static void test_request_errors() {
     CHECK(accepted(edit(base, options, "\"options\": {}")));
     CHECK(rejected(edit(base, "\"eig\": \"qr\"", "\"eig\": \"qz\""), "options.eig", "qr"));
     CHECK(rejected(edit(base, "\"eig\": \"qr\"", "\"eig\": 3"), "options.eig", "字符串"));
+    CHECK(rejected(edit(base, "\"eig\": \"qr\"", "\"eig\": \"mkl\""), "options.eig", "qr"));                  // MKL 用 backend 选
+    CHECK(rejected(edit(base, "\"eig\": \"qr\"", "\"backend\": \"gpu\", \"eig\": \"qr\""), "options.backend", "builtin"));
+    CHECK(rejected(edit(base, "\"eig\": \"qr\"", "\"backend\": null, \"eig\": \"qr\""), "options.backend"));
+    CHECK(accepted(edit(base, "\"eig\": \"qr\"", "\"backend\": \"builtin\", \"eig\": \"qr\"")));
+#if !STABLERCWA_WITH_MKL
+    CHECK(rejected(edit(base, "\"eig\": \"qr\"", "\"backend\": \"mkl\", \"eig\": \"qr\""), "options.backend", "STABLERCWA_WITH_MKL"));
+#endif
     CHECK(rejected(edit(base, "\"factorization\": \"li\"", "\"factorization\": \"Li\""), "options.factorization", "laurent"));
     CHECK(rejected(edit(base, "\"factorization\": \"li\"", "\"factorization\": null"), "options.factorization"));
     CHECK(rejected(edit(base, "\"homogeneous_fast_path\": true", "\"homogeneous_fast_path\": 1"), "options.homogeneous_fast_path", "true"));

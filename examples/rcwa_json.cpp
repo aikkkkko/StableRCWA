@@ -9,6 +9,9 @@
 //   ./rcwa_json request.json --pretty             # 应答分行、缩进，便于阅读（默认写成一行）
 //
 // 请求、应答的格式见 stablercwa/rcwa_json.hpp 开头的说明。
+// 编译时定义 STABLERCWA_WITH_MKL=1 并链接 oneMKL 的 mkl_rt，请求里就可以写 "options": {"backend": "mkl"}（本征分解、
+// 稠密乘法、线性求解都交给 MKL，见 stablercwa/mkl/mkl_backend.hpp）。CMake 打开 STABLERCWA_WITH_MKL 选项时另编一个这样的程序
+// rcwa_json_mkl。
 // 返回码：0 —— 应答里 ok 为 true；
 //         1 —— 应答里 ok 为 false：请求有错，原因在应答的 error、where 里，标准错误上也说一句；
 //         2 —— 读不到输入（文件打不开、输入是空的）、写不出应答，或者命令行写错了。这时没有应答。
